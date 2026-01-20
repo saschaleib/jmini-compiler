@@ -1,8 +1,8 @@
  			/* everything related to the data model */
 			$p.data = {
 			
-				_baseURL: 'https://jmini.nuropa.eu/dev/',
-				_docsURL: 'https://jmini.nuropa.eu/wiki/',
+				_baseURL: '../core/', // where to find the "core" files?
+				_docsURL: 'https://jmini.nuropa.eu/wiki/', // where is the documentation located?
 						
 				_init: function() {
 					//console.info('$p.data._init()');
