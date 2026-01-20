@@ -3,23 +3,43 @@
 	<head>
 		<meta charset="utf-8" />
 		<title>jMini Compiler Tool</title>
-		<script src="../core/page/page_core.min.js"></script>
 		<script src="../core/data/JSON.load.min.js"></script>
 		<script src="../core/elements/HTMLElement.new.min.js"></script>
 		<script src="../core/elements/Element.appendNew.min.js"></script>
 		<script src="../core/elements/Element.setHtml.min.js"></script>
-		<script src="jmini-compiler.js"></script>
+		<script src="../core/events/Element.on.min.js"></script>
+		<script src="../core/page/page_core.min.js"></script>
+		<script src="../core/page/page_dyn_core.min.js"></script>
+		<script src="js/_dyn.js"></script>
+		<script src="js/_gui.js"></script>
+		<script src="js/_model.js"></script>
+		<link rel="stylesheet" type="text/css" href="css/compiler.css">
+		<style>
+			:root { background-color: #F2F4F1; }
+		</style>
 	</head>
 	<body>
 		<header>
 			<h1>jMini Compiler Tool</h1>
 			<p>
-				This page contains the jMini Compiler tool. However, it can also be embedded into other pages.
-				See the docs for details.
+				This page contains the jMini Compiler tool.
 			</p>
 		</header>
 		<main>
-			<div id="jmini-compiler" />
+			<script type="application/json"> {
+			  "action": "jmini-compiler",
+			  "from": "https://jmini.nuropa.eu/dev/",
+			  "to": "jMini-Compiler",
+			  "error": "jMini-Error"
+			} </script>
+			<section id="jMini-Compiler"><!-- The tool will be inserted here! --></section>
+			<dialog id="jMini-Error" closedby="none">
+				<p>
+					The jMini Compiler Tool could not be loaded. Please try reloading the page.<br>
+					If this doesn’t help, contact the site owner about this error.<br>
+					If you <em>are</em> the site owner, the browser console may give you more information.
+				</p>
+			</dialog>
 		</main>
 		<footer>
 		</footer>
