@@ -25,6 +25,7 @@ $p.dyn.jMini = {
 		// shortcuts to make the code more readable:
 		const me = $p.dyn.jMini;
 		const gError = me.gui.globalError;
+		const model = $p.dyn.jMini.model;
 		
 		// find the root element (use the parent as fallback):
 		const root = document.getElementById(json.to) || parent;
@@ -34,16 +35,10 @@ $p.dyn.jMini = {
 			gError.setElement(json.error);
 		}
 		
-		// prepare the GUI:
-		if (root) {
-			me.gui.prepare(root);
-		} else {
-			gError.show("No root element found.");
-			return;
-		}
+		// Build the interface:
+		me.gui.prepare(root);
 		
 		// load the model:
-		const baseUrl = json.from || './';
-		me.model.load(baseUrl);
+		model.load( json.from || './' );
 	}
 }
