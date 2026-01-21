@@ -63,6 +63,9 @@ $p.dyn.jMini.gui = {
 				case 'network':
 					me._ref.error.network.hidden = false;
 					break;
+				case 'incomplete':
+					me._ref.error.incomplete.hidden = false;
+					break;
 				default:
 					console.error("Unknown error type:", type);
 			}
@@ -108,8 +111,10 @@ $p.dyn.jMini.gui = {
 			annotate: null
 		},
 		error: {
-			network: null
-		}
+			network: null,
+			incomplete: null
+		},
+		sourceField: null
 	},
 	
 	// GUI module builder:
@@ -165,7 +170,16 @@ $p.dyn.jMini.gui = {
 				}, [
 					HTMLElement.new('span', undefined, "The index files could not be loaded. Either they don’t exist, or a network error occured. Please see the browser console for more information."),
 					HTMLElement.new('button', undefined, "Reload").on('click', cb.onReloadButtonClicked)
+				]),
+
+				ref.error.incomplete = HTMLElement.new('p', { // Incomplete data
+					'class': 'warning',
+					'hidden': 'hidden'
+				}, [
+					HTMLElement.new('span', undefined, "The code repository was found, but the source data could not be completely loaded. This may be due to network problems, or because there is incorrect data in the repository. Click the button to retry loading the missing items."),
+					HTMLElement.new('button', undefined, "Retry").on('click', cb.onLoadMissingButtonClicked)
 				])
+
 			]);
 		},
 		
@@ -287,9 +301,12 @@ $p.dyn.jMini.gui = {
 		
 		// build the target code field:
 		makeCodeField: function() {
-			
+		
+			// shortcuts to make the code more readable:
+			const me = $p.dyn.jMini.gui;
+
 			return HTMLElement.new('div', undefined, [
-				HTMLElement.new('textarea', {
+				me._ref.sourceField = HTMLElement.new('textarea', {
 					'id': 'jmc__source'
 				}),
 				HTMLElement.new('label', {
@@ -413,6 +430,16 @@ $p.dyn.jMini.gui = {
 		},
 		onCopyButtonClick: function(e) {
 			console.log('onCopyButtonClick', e);
+
+			// shortcuts to make the code more readable:
+			const me = $p.dyn.jMini.gui;
+
+			// select and copy text:
+			console.log(me._ref.sourceField);
+			me._ref.sourceField.select();
+			document.execCommand('copy');
+
+			console.log("Code is now in clipboard!");
 		},
 		onTopicCheckBoxClick: function(e) {
 			console.log('onTopicCheckBoxChange', e);
