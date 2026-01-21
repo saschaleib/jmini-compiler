@@ -6,21 +6,13 @@
  *
  * @author Sascha Leib <ad@hominem.info>
  *
- * @version 0.0.1
- * @date 2026-01-20
+ * @version 2.0.1
+ * @date 2026-01-21
  * @package jmini-compiler
  * @requires jMini Core
  */
  
 $p.dyn.jMini.gui = {
-
-	_init: function() {
-		console.log('$p.dyn.jMini.gui._init()');
-	},
-	
-	init: function() {
-		console.log('$p.dyn.jMini.gui.init()');
-	},
 	
 	prepare: function(root) {
 		//console.log('$p.dyn.jMini.gui.prepare(',root,')');
@@ -49,6 +41,47 @@ $p.dyn.jMini.gui = {
 			builder.makeCodeHeader(),
 			builder.makeCodeField()
 		]);
+	},
+	
+	// general UI interaction
+	interaction: {
+	
+		// start interaction:
+		start: function() {
+			
+			// shortcuts to make the code more readable:
+			const me = $p.dyn.jMini.gui;
+			const ref = me._ref;
+
+			// enable UI items:
+			ref.compileBtn.disabled = false;
+			ref.options.minify.disabled = false;
+
+			// end the busy animation:
+			me.interaction.endBusy();
+			
+		},
+		
+		// start the busy interaction:
+		startBusy: function() {
+			
+			// shortcuts to make the code more readable:
+			const me = $p.dyn.jMini.gui;
+			const ref = me._ref;
+
+			ref.total.classList.add('loading');
+			ref.total.textContent = "loading";
+		},
+		endBusy: function(txt = '—') {
+			
+			// shortcuts to make the code more readable:
+			const me = $p.dyn.jMini.gui;
+			const ref = me._ref;
+
+			ref.total.classList.remove('loading');
+			ref.total.textContent = txt;
+		}
+
 	},
 	
 	// functions for showing errors
@@ -94,9 +127,8 @@ $p.dyn.jMini.gui = {
 			if (minifyCB) {
 				return minifyCB.checked;
 			}
-			return false; // in case not available.
+			return true; // in case not available: use minified!
 		}
-		
 	},
 	
 	/* references to specific elements for easy access: */
@@ -176,8 +208,8 @@ $p.dyn.jMini.gui = {
 					'class': 'warning',
 					'hidden': 'hidden'
 				}, [
-					HTMLElement.new('span', undefined, "The code repository was found, but the source data could not be completely loaded. This may be due to network problems, or because there is incorrect data in the repository. Click the button to retry loading the missing items."),
-					HTMLElement.new('button', undefined, "Retry").on('click', cb.onLoadMissingButtonClicked)
+					HTMLElement.new('span', undefined, "The code repository was found, but the source data could not be completely loaded. This may be due to network problems, or because there is incorrect data in the repository. Some modules may not be available."),
+					HTMLElement.new('button', undefined, "Reload").on('click', cb.onReloadButtonClicked)
 				])
 
 			]);
@@ -205,7 +237,7 @@ $p.dyn.jMini.gui = {
 			const ref = me._ref;
 			
 			// create the compile button:
-			cb.compileBtn = HTMLElement.new('button', {
+			ref.compileBtn = HTMLElement.new('button', {
 				'type': 'submit',
 				'disabled': 'disabled'
 			},"Compile").on('click', cb.onCompileButtonClick);
@@ -268,7 +300,7 @@ $p.dyn.jMini.gui = {
 
 				HTMLElement.new('p', {
 					'class': 'jmc_footer-buttons'
-				}, cb.compileBtn),
+				}, ref.compileBtn),
 			]);
 
 			return footer;
@@ -360,6 +392,7 @@ $p.dyn.jMini.gui = {
 		}
 	},
 	
+	// Update existing elements:
 	updater: {
 		
 		// update topics to include all the items:
@@ -385,7 +418,7 @@ $p.dyn.jMini.gui = {
 				}, "—")
 							
 				// put it all together:
-				return HTMLElement.new('li', undefined, [
+				return it._li = HTMLElement.new('li', undefined, [
 					it._cb,
 					HTMLElement.new('label', {
 						'for': 'jmc__funcb_' + it.id
@@ -403,7 +436,7 @@ $p.dyn.jMini.gui = {
 		
 		// update an item's file size:
 		updateFileSize: function(item, minified) {
-			console.log('updateFileSize()', item, minified);
+			// console.log('updateFileSize()', item, minified);
 			
 			try {
 				const size = ( minified ? item._srcmin.length : item._src );
@@ -412,6 +445,23 @@ $p.dyn.jMini.gui = {
 			catch(err) {
 				console.error(e.toString());
 			}
+		},
+
+		// update the topic size:
+		updateTopicSize: function(topic, size) {
+			//console.log('updateTopicSize()', topic, minified);
+			
+			topic._sf.textContent = size.toBytesString(2, 'en', {0: '—'});
+		},
+
+		// sets an item to an error state:
+		setItemError: function(item) {
+			// console.log('setItemError()', item);
+
+			item._li.classList.add('error');
+			item._cb.disabled = true;
+			item._cb.checked = false;
+
 		}
 
 	},
@@ -429,49 +479,54 @@ $p.dyn.jMini.gui = {
 			console.log('onBackButtonClick', e);
 		},
 		onCopyButtonClick: function(e) {
-			console.log('onCopyButtonClick', e);
-
-			// shortcuts to make the code more readable:
-			const me = $p.dyn.jMini.gui;
+			// console.log('onCopyButtonClick', e);
 
 			// select and copy text:
-			console.log(me._ref.sourceField);
-			me._ref.sourceField.select();
+			$p.dyn.jMini.gui._ref.sourceField.select();
 			document.execCommand('copy');
 
-			console.log("Code is now in clipboard!");
+			// console.log("Code is now in clipboard!");
 		},
 		onTopicCheckBoxClick: function(e) {
-			console.log('onTopicCheckBoxChange', e);
+			//console.log('onTopicCheckBoxChange', e);
+
+			// shortcuts to make the code more readable:
+			const model = $p.dyn.jMini.model;
+
+			// get the id and state:
+			const id = e.target.getAttribute('data-tid');
+			const state = e.target.checked;
+			
+			// select all sub-items:
+			model.checkTopic( id, state );
+			
+			// update all sizes:
+			model.calculateTopicSizes();
+	
 		},
 		onItemCheckBoxClick: function(e) {
-			console.log('onItemCheckBoxClick', e);
+			// console.log('onItemCheckBoxClick', e);
+
+			// shortcuts to make the code more readable:
+			const model = $p.dyn.jMini.model;
+
+			// get the id and state:
+			const id = e.target.getAttribute('data-mid');
+			const state = e.target.checked;
+			
+			// select all sub-items:
+			model.checkItem( id, state );
+			
+			// update all sizes:
+			model.calculateTopicSizes();
 		},
 		onMinifyOptionChange: function(e) {
 			console.log('onMinifyOptionChange', e);
 		},
 		onReloadButtonClicked: function(e) {
-			console.log('onReloadButtonClicked', e);
+			// console.log('onReloadButtonClicked', e);
 			window.location.reload();
 		}
-	},
-	
-	/* handles the general interface error (needs to be provided in the HTML code!) */
-	globalError: {
-		
-		/* sets the element to be used as an error message */
-		setElement: function(id) {
-			$p.dyn.jMini.gui.globalError._errElement = document.getElementById(id);
-		},
-		
-		_errElement: null,
-	
-		/* show the error message */
-		show: function(msg) {
-			
-			const e = $p.dyn.jMini.gui.globalError._errElement;
-			if (e) e.showModal();
-			console.error(msg);
-		}
 	}
+
 }

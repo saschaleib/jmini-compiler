@@ -24,16 +24,10 @@ $p.dyn.jMini = {
 		
 		// shortcuts to make the code more readable:
 		const me = $p.dyn.jMini;
-		const gError = me.gui.globalError;
 		const model = $p.dyn.jMini.model;
 		
 		// find the root element (use the parent as fallback):
 		const root = document.getElementById(json.to) || parent;
-		
-		// store a reference to the global error element:
-		if (json.error) {
-			gError.setElement(json.error);
-		}
 		
 		// Build the interface:
 		me.gui.prepare(root);

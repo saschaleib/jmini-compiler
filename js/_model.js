@@ -6,8 +6,8 @@
  *
  * @author Sascha Leib <ad@hominem.info>
  *
- * @version 0.0.2
- * @date 2026-01-20
+ * @version 2.0.1
+ * @date 2026-01-21
  * @package jmini-compiler
  * @requires jMini Core
  */
@@ -69,6 +69,108 @@ $p.dyn.jMini.model = {
 		});
 	},
 	
+	// find an item by ID:
+	findItem: function(id) {
+		//console.log('$p.dyn.jMini.model.findItem("'+id+'")');
+		
+		// shortcuts to make the code more readable:
+		const me = $p.dyn.jMini.model;
+
+		// search through all items:
+		let item = null;
+		for (let i = 0; i < me._data.length; i++) {
+			for (let j = 0; j < me._data[i]._items.length; j++) {
+				if (me._data[i]._items[j].id === id) {
+					item = me._data[i]._items[j];
+					break;
+				}
+			}
+			if (item) break;
+		}
+		
+		return item;
+	},
+	
+	// check/uncheck item by ID:
+	checkItem: function(id, state) {
+		//console.log('$p.dyn.jMini.model.checkItem("'+id+'"',state,')');
+		
+		// shortcuts to make the code more readable:
+		const me = $p.dyn.jMini.model;
+
+		// find the item:
+		const item = me.findItem(id);
+		if (item) {
+			item._checked = state;
+			item._cb.checked = state;
+		}
+
+	},
+
+	// check/uncheck an entire topic:
+	checkTopic: function(id, state) {
+		//console.log('$p.dyn.jMini.model.checkTopic("'+id+'"',state,')');
+
+		// shortcuts to make the code more readable:
+		const me = $p.dyn.jMini.model;
+		const gui = $p.dyn.jMini.gui;
+
+		// find the topic:
+		let topic = null;
+		for (let i = 0; i < me._data.length; i++) {
+			if (me._data[i].id == id) {
+				topic = me._data[i];
+				break;
+			}
+		}
+		if (topic) {
+			
+			// update checked status of all items:
+			topic._items.forEach( it => {
+				it._checked = state;
+				it._cb.checked = state;
+			});
+
+		} else {
+			console.error('TOPIC NOT FOUND:', id);
+		}			
+	},
+	
+	// recalculate all topic sizes:
+	calculateTopicSizes: function() {
+		//console.log('$p.dyn.jMini.model.calculateTopicSizes()');
+
+		// shortcuts to make the code more readable:
+		const me = $p.dyn.jMini.model;
+		const gui = $p.dyn.jMini.gui;
+
+		// looking for minified sizes or readable ones?
+		const minified = gui.options.getMinifiedStatus();
+		
+		// total toolbox size:
+		let totalSize = 0;
+		
+		// loop over all topics:
+		me._data.forEach( topic => {
+			
+			let topicSize = 0;
+			topic._items.forEach( it => {
+				if (it._checked) {
+					const size = ( minified ? it._srcmin.length || 0 : it._src.length || 0 );
+					topicSize += size;
+					totalSize += size;
+				}
+			});
+			gui.updater.updateTopicSize(topic, topicSize);
+			
+			// display the total size:
+			gui.interaction.endBusy(totalSize.toBytesString(2, 'en', {0: '—'}));
+		});
+
+		//gui.updater.updateTopicSize(topic, minified);
+		
+	},
+
 	// load all the source snippets:
 	_loadSourceSnippets: function(baseUrl) {
 		//console.log('$p.dyn.jMini.model._loadSourceSnippets('+baseUrl+')');
@@ -80,38 +182,46 @@ $p.dyn.jMini.model = {
 		// lock, and get the status of the minified button:
 		gui.options.lockMinifiedCB(true);
 		const minified = gui.options.getMinifiedStatus();
-				
-		// load all the items minified first:
+
+		// count the total snippet files to be loaded:
+		me._data.forEach( topic => {
+			me.__totalSnippetLoads += topic._items.length * 2;
+		});
+
+		// load all the minified snippets first:
 		me._data.forEach( topic => {
 			topic._items.forEach( it => {
-				me.__loadSnippet(baseUrl, topic, it, true, minified);
+				me.__loadSnippet(baseUrl, topic, it, true, minified, me.__loadSnippetCallback);
 			});
 		});
 
 		// now do the same for all the non-minified ones:
 		me._data.forEach( topic => {
 			topic._items.forEach( it => {
-				me.__loadSnippet(baseUrl, topic, it, false, !minified);
+				me.__loadSnippet(baseUrl, topic, it, false, !minified, me.__loadSnippetCallback);
 			});
 		});
 		
 		// now the same for the non-minified versions:
 		// TODO!
 	},
-	__loadSnippet: async function(baseUrl, topic, item, minified, show) {
+	__loadSnippet: async function(baseUrl, topic, item, minified, show, callback) {
 		//console.log('$p.dyn.jMini.model.__loadSnippet()', baseUrl, topic, item, minified);
 
 		// shortcuts to make the code more readable:
 		const me = $p.dyn.jMini.model;
 		const gui = $p.dyn.jMini.gui;
 
-		// URL to load: 
-		const fileUrl = baseUrl + topic.path + item.file + ( minified ? '.min' : '' ) + '.js';
-		console.log('loading from:', fileUrl);
-		
-		fetch(fileUrl)
+		// Load the topic file:
+		fetch(baseUrl + topic.path + item.file + ( minified ? '.min' : '' ) + '.js')
 		.then (response => {
-			return response.text();
+			if (response.ok) {
+				return response.text();
+			} else {
+				gui.error.show('incomplete');
+				console.error(`HTTP ${response.status}: ${response.statusText}`);
+				return null;
+			}
 		})
 		.then( txt => {
 			
@@ -123,10 +233,39 @@ $p.dyn.jMini.model = {
 			}
 			
 			// update the UI:
-			if (show) {
+			if (!txt) { // an error occured
+				item._checked = false;
+				gui.updater.setItemError(item);
+			} else if (show) {
 				gui.updater.updateFileSize(item, minified);
 			}
+		})
+		.catch( error => {
+			gui.error.show('incomplete');
+			console.error(error.toString());
+		})
+		.finally( () => {
+			if (callback) callback(); // call the callback.
 		});
+	},
+	
+	// total number of snippets to be loaded:
+	__totalSnippetLoads: 0,
+	
+	// callback after every snippet was loaded:
+	__loadSnippetCallback: function() {
+		
+		// shortcuts to make the code more readable:
+		const me = $p.dyn.jMini.model;
+		const gui = $p.dyn.jMini.gui;
+
+		me.__totalSnippetLoads--; // countdown
+		
+		// finished? go interactive
+		if (me.__totalSnippetLoads <= 0) {
+			// console.info("Loading finished, entering interactive mode:");
+			gui.interaction.start();
+		}
 		
 	}
 }

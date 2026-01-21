@@ -164,6 +164,9 @@
 							white-space: nowrap;
 							margin: .25em 0 .25em 4.1em;
 						}
+						&.error {
+							color: #A4000F;
+						}
 						label {
 							font-family: Consolas, "Lucida Console", "Courier New", monospace;
 							font-size-adjust: 0.5;
