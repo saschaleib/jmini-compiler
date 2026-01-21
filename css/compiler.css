@@ -21,7 +21,30 @@
 		overflow: hidden;
 	}
 	& #jmc__tab1 {
-		& > * {
+		& > .errors {
+			p.error {
+				& {
+					color: #A4000F;
+					margin: 2pt 0;
+					padding: .75em;
+					background-color: #FDF2F5;
+					display: grid;
+					grid-template-columns: 1.5em auto min-content;
+					justify-content: start;
+					column-gap: .75em;
+					border: #F8D5DB solid 1px;
+					border-radius: 2pt;
+				}
+				&::before {
+					content: '';
+					display: block;
+					width: 1.5em; height: 1.5em;
+					background: transparent url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M3,16V9L8,4H15L20,9V16.03L15.03,21H8L3,16M8.39,5L4,9.39V15.6L8.4,20H14.61L19,15.61V9.39L14.61,5H8.39M11,8H12V13H11V8M11,15H12V17H11V15Z' style='fill:%23A4000F'/%3E%3C/svg%3E") center no-repeat;
+				}
+				button {
+					align-self: start;
+				}
+			}
 		}
 		& > header {
 			& {
@@ -63,7 +86,7 @@
 				}
 			}
 		}
-		& > div {
+		& > div.content {
 			& {
 				background-color: #FBFCFB;
 				color: #1B1B1B;
@@ -357,14 +380,4 @@
 			box-shadow: inset .125em .125em .25em rgba(204, 204, 204, 0.6);
 		}
 	}
-}
-
-/* Error message */
-#jMini-Error {
-	border: #A22 solid 2pt;
-	border-radius: .5em;
-	margin: 1em auto;
-	padding: .5em;
-	background-color: #FAE7E7;
-	color: #A22;
 }

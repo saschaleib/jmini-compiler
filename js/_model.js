@@ -63,9 +63,10 @@ $p.dyn.jMini.model = {
 			});
 
 		})
-		/*.catch( error => {
+		.catch( error => {
+			gui.error.show('network');
 			console.error(error.toString());
-		});*/
+		});
 	},
 	
 	// load all the source snippets:

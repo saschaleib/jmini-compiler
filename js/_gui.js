@@ -36,6 +36,7 @@ $p.dyn.jMini.gui = {
 		ref.tabs[0] = root.appendNew('div', { 'id': 'jmc__tab1'},
 		[
 			builder.makeSelHeader(),
+			builder.makeErrorMessages(),
 			builder.makeTopicsElement(),
 			builder.makeSelFooter()
 		]);
@@ -48,6 +49,24 @@ $p.dyn.jMini.gui = {
 			builder.makeCodeHeader(),
 			builder.makeCodeField()
 		]);
+	},
+	
+	// functions for showing errors
+	error: {
+		show: function(type) {
+			//console.log('$p.dyn.jMini.gui.error.show(',type,')');
+			
+			// shortcuts to make the code more readable:
+			const me = $p.dyn.jMini.gui;
+
+			switch (type) {
+				case 'network':
+					me._ref.error.network.hidden = false;
+					break;
+				default:
+					console.error("Unknown error type:", type);
+			}
+		}
 	},
 	
 	// functions related to the options:
@@ -87,6 +106,9 @@ $p.dyn.jMini.gui = {
 			minify: null,
 			license: null,
 			annotate: null
+		},
+		error: {
+			network: null
 		}
 	},
 	
@@ -125,13 +147,37 @@ $p.dyn.jMini.gui = {
 			return header;
 		},
 		
+		// build a section of error messages to be shown as needed:
+		makeErrorMessages: function() {
+			
+			// shortcuts to make the code more readable:
+			const me = $p.dyn.jMini.gui;
+			const cb = me._callback;
+			const ref = me._ref;
+			
+			return HTMLElement.new('div', {
+				'class': 'errors'
+			}, [
+			
+				ref.error.network = HTMLElement.new('p', { // Network error
+					'class': 'error',
+					'hidden': 'hidden'
+				}, [
+					HTMLElement.new('span', undefined, "The index files could not be loaded. Either they don’t exist, or a network error occured. Please see the browser console for more information."),
+					HTMLElement.new('button', undefined, "Reload").on('click', cb.onReloadButtonClicked)
+				])
+			]);
+		},
+		
 		// prepare the high-level list (content will be added later):
 		makeTopicsElement: function(topics) {
 
 			// shortcut to make the code more readable:
 			const me = $p.dyn.jMini.gui;
 			
-			me._ref.topicList = HTMLElement.new('div');
+			me._ref.topicList = HTMLElement.new('div', {
+				'class': 'content'
+			});
 
 			return me._ref.topicList
 		},
@@ -376,6 +422,10 @@ $p.dyn.jMini.gui = {
 		},
 		onMinifyOptionChange: function(e) {
 			console.log('onMinifyOptionChange', e);
+		},
+		onReloadButtonClicked: function(e) {
+			console.log('onReloadButtonClicked', e);
+			window.location.reload();
 		}
 	},
 	
