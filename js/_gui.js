@@ -50,13 +50,44 @@ $p.dyn.jMini.gui = {
 		]);
 	},
 	
+	// functions related to the options:
+	options: {
+		
+		// lock/unlock the Minify checkbox:
+		lockMinifiedCB: function(lock) {
+			
+			// shortcuts to make the code more readable:
+			const minifyCB = $p.dyn.jMini.gui._ref.options.minify;
+			
+			if (minifyCB) {
+				minifyCB.disabled = lock;
+			}
+		},
+		
+		// returns the current status of the Minify button:
+		getMinifiedStatus: function() {
+			// shortcuts to make the code more readable:
+			const minifyCB = $p.dyn.jMini.gui._ref.options.minify;
+			
+			if (minifyCB) {
+				return minifyCB.checked;
+			}
+			return false; // in case not available.
+		}
+		
+	},
+	
 	/* references to specific elements for easy access: */
 	_ref: {
 		total: null,
-		fields: null,
 		compileBtn: null,
 		topicList: null,
-		tabs: [null, null]
+		tabs: [null, null],
+		options: {
+			minify: null,
+			license: null,
+			annotate: null
+		}
 	},
 	
 	// GUI module builder:
@@ -112,54 +143,6 @@ $p.dyn.jMini.gui = {
 			const me = $p.dyn.jMini.gui;
 			const cb = me._callback;
 			const ref = me._ref;
-
-			// create the fieldset first:
-			ref.fields = HTMLElement.new('fieldset', undefined, [ // Options fieldset
-				
-				HTMLElement.new('legend', { // legend (SR-only)
-					'class': 'sr-only'
-				}, "Download options"),
-				
-				HTMLElement.new('p', undefined, [ // Minify option
-					HTMLElement.new('label', {
-						'for': 'jmc__chk__minify'
-					}, "Use minified code"),
-					HTMLElement.new('input', {
-						'type': 'checkbox',
-						'id': 'jmc__chk__minify',
-						'value': 'minify',
-						'checked': ''
-					}),
-					HTMLElement.new('small', undefined,
-						"Use the minified versions of the code (significantly reduces the file size!)")
-				]),
-
-				HTMLElement.new('p', undefined, [ // License option
-					HTMLElement.new('label', {
-						'for': 'jmc__chk__license'
-					}, "Insert license"),
-					HTMLElement.new('input', {
-						'type': 'checkbox',
-						'id': 'jmc__chk__license',
-						'value': 'license'
-					}),
-					HTMLElement.new('small', undefined,
-						"Insert the MIT license text on top of the code (adds ca. 1 KiB to the file)")
-				]),
-
-				HTMLElement.new('p', undefined, [ // Annotate option
-					HTMLElement.new('label', {
-						'for': 'jmc__chk__annotate'
-					}, "Annotate"),
-					HTMLElement.new('input', {
-						'type': 'checkbox',
-						'id': 'jmc__chk__annotate',
-						'value': 'annotate'
-					}),
-					HTMLElement.new('small', undefined,
-						"Add small code annotations to each include. Helpful for debugging the minified version.")
-				])
-			]);
 			
 			// create the compile button:
 			cb.compileBtn = HTMLElement.new('button', {
@@ -170,9 +153,57 @@ $p.dyn.jMini.gui = {
 			// make the rest of the footer:
 			const footer = HTMLElement.new('footer', undefined, [
 			
-				HTMLElement.new('details', undefined, [
+				HTMLElement.new('details', {
+					'open': 'open'
+				}, [
 					HTMLElement.new('summary', undefined, "Options"),
-					ref.fields
+					HTMLElement.new('fieldset', undefined, [ // Options fieldset
+				
+						HTMLElement.new('legend', { // legend (SR-only)
+							'class': 'sr-only'
+						}, "Download options"),
+						
+						HTMLElement.new('p', undefined, [ // Minify option
+							HTMLElement.new('label', {
+								'for': 'jmc__chk__minify'
+							}, "Use minified code"),
+							ref.options.minify = HTMLElement.new('input', {
+								'type': 'checkbox',
+								'id': 'jmc__chk__minify',
+								'value': 'minify',
+								'checked': 'checked',
+								'disabled': 'disabled'
+							}).on('change', cb.onMinifyOptionChange),
+							HTMLElement.new('small', undefined,
+								"Use the minified versions of the code (significantly reduces the file size!)")
+						]),
+
+						HTMLElement.new('p', undefined, [ // License option
+							HTMLElement.new('label', {
+								'for': 'jmc__chk__license'
+							}, "Insert license"),
+							ref.options.license = HTMLElement.new('input', {
+								'type': 'checkbox',
+								'id': 'jmc__chk__license',
+								'value': 'license'
+							}),
+							HTMLElement.new('small', undefined,
+								"Insert the MIT license text on top of the code (adds ca. 1 KiB to the file)")
+						]),
+
+						HTMLElement.new('p', undefined, [ // Annotate option
+							HTMLElement.new('label', {
+								'for': 'jmc__chk__annotate'
+							}, "Annotate"),
+							ref.options.annotate = HTMLElement.new('input', {
+								'type': 'checkbox',
+								'id': 'jmc__chk__annotate',
+								'value': 'annotate'
+							}),
+							HTMLElement.new('small', undefined,
+								"Add small code annotations to each include. Helpful for debugging the minified version.")
+						])
+					])
 				]),
 
 				HTMLElement.new('p', {
@@ -211,16 +242,26 @@ $p.dyn.jMini.gui = {
 		// build the target code field:
 		makeCodeField: function() {
 			
-			return HTMLElement.new('div', undefined,
-				HTMLElement.new('textarea'));
+			return HTMLElement.new('div', undefined, [
+				HTMLElement.new('textarea', {
+					'id': 'jmc__source'
+				}),
+				HTMLElement.new('label', {
+					'for': 'jmc__source',
+					'class': 'sr-only'
+				}, "jMini Source Code")
+			]);
 		
 		},
 		
 		// make the topics list:
 		makeTopicsList: function(topics) {
+			//console.log('makeTopicsList()', topics);
 	
 			// shortcuts to make the code more readable:
-			const ref = $p.dyn.jMini.gui._ref;
+			const me = $p.dyn.jMini.gui;
+			const cb = me._callback;
+			const ref = me._ref;
 
 			// add all the topics:
 			topics.forEach( topic => {
@@ -230,7 +271,7 @@ $p.dyn.jMini.gui = {
 					'type': 'checkbox',
 					'data-tid': topic.id,
 					'id': 'jmc__topiccb_' + topic.id
-				});
+				}).on('click', cb.onTopicCheckBoxClick);
 				
 				// now the size field:
 				topic._sf = HTMLElement.new('span', {
@@ -239,7 +280,7 @@ $p.dyn.jMini.gui = {
 				
 				// put it all together:
 				topic._e = ref.topicList.appendNew('details', {
-						'open': 'open'
+						//'open': 'open'
 					},
 					HTMLElement.new('summary', undefined, [
 						topic._cb,
@@ -253,20 +294,27 @@ $p.dyn.jMini.gui = {
 					])
 				);
 			});
-		},
+		}
+	},
+	
+	updater: {
 		
-		//add items to the topics lists:
-		appendItemsToTopic: function(topic, items) {
+		// update topics to include all the items:
+		updateTopicItems: function(topic, items) {
+			//console.log('updateTopicItems()', topic, topic._items);
+
+			// shortcuts to make the code more readable:
+			const me = $p.dyn.jMini.gui;
 
 			// map items array to HTML list items:
 			const list = items.map( it => {
 				
-				// first the checkbox:
+				// first create the checkbox:
 				it._cb = HTMLElement.new('input', {
 					'type': 'checkbox',
 					'data-mid': it.id,
 					'id': 'jmc__funcb_' + it.id
-				});
+				}).on('click', me._callback.onItemCheckBoxClick);
 			
 				// now the size field:
 				it._sf = HTMLElement.new('span', {
@@ -286,12 +334,26 @@ $p.dyn.jMini.gui = {
 				]);
 			});
 			
-			const ul = topic._e.appendNew('ul', undefined, list);
-
+			// add list to new UL item:
+			topic._e.appendNew('ul', undefined, list);
+		},
+		
+		// update an item's file size:
+		updateFileSize: function(item, minified) {
+			console.log('updateFileSize()', item, minified);
+			
+			try {
+				const size = ( minified ? item._srcmin.length : item._src );
+				item._sf.textContent = size.toBytesString();
+			}
+			catch(err) {
+				console.error(e.toString());
+			}
 		}
-	
+
 	},
 	
+	/* Callback functions for UI elements */
 	_callback: {
 		
 		onGlobalCheckboxChange: function(e) {
@@ -305,6 +367,15 @@ $p.dyn.jMini.gui = {
 		},
 		onCopyButtonClick: function(e) {
 			console.log('onCopyButtonClick', e);
+		},
+		onTopicCheckBoxClick: function(e) {
+			console.log('onTopicCheckBoxChange', e);
+		},
+		onItemCheckBoxClick: function(e) {
+			console.log('onItemCheckBoxClick', e);
+		},
+		onMinifyOptionChange: function(e) {
+			console.log('onMinifyOptionChange', e);
 		}
 	},
 	
