@@ -15,8 +15,8 @@
 $app.gui = {
 	
 	// prepare the UI pre-initialisation:
-	prepare: function(root) {
-		//console.log('$app.gui.prepare(',root,')');
+	init: function(root) {
+		//console.log('$app.gui.init(',root,')');
 
 		// shortcut to make the code more readable:
 		const builder = $app.gui.builder;
@@ -33,7 +33,7 @@ $app.gui = {
 		// create the target tab tab:
 		$app.gui._ref.tabs[1] = root.appendNew('div', {
 			'id': 'jmc__tab2',
-			//'hidden': 'hidden'
+			'hidden': 'hidden'
 		}, [
 			builder.makeCodeHeader(),
 			builder.makeCodeField()
@@ -64,12 +64,21 @@ $app.gui = {
 		},
 		
 		// end the busy state; optionally set a file size text
-		endBusy: function(txt = '—') {
+		endBusy: function() {
 
 			$app.gui._ref.total.classList.remove('loading');
-			$app.gui._ref.total.textContent = txt;
+			$app.gui._ref.total.textContent = '';
 		}
 
+	},
+	
+	// change the tab interface:
+	showTab: function(num) {
+		//console.log('$app.gui.showTab(',num,')');
+		
+		$app.gui._ref.tabs.forEach( (tab, i) => {
+			tab.hidden = (i !== num);
+		});
 	},
 	
 	// functions for showing errors
@@ -119,6 +128,7 @@ $app.gui = {
 	/* references to specific elements for easy access: */
 	_ref: {
 		total: null,
+		totalCb: null,
 		compileBtn: null,
 		topicList: null,
 		tabs: [null, null],
@@ -147,8 +157,7 @@ $app.gui = {
 			
 			const header = HTMLElement.new('header', undefined,
 			[
-			
-				HTMLElement.new('input', {
+				$app.gui._ref.totalCb = HTMLElement.new('input', {
 					'type': 'checkbox',
 					'id': 'jmc__globalcb',
 					'title': "select/unselect all"
@@ -205,7 +214,7 @@ $app.gui = {
 			const footer = HTMLElement.new('footer', undefined, [
 			
 				HTMLElement.new('details', {
-					'open': 'open'
+					// 'open': 'open'
 				}, [
 					HTMLElement.new('summary', undefined, "Options"),
 					HTMLElement.new('fieldset', undefined, [ // Options fieldset
@@ -380,25 +389,32 @@ $app.gui = {
 			// add list to new UL item:
 			topic._e.appendNew('ul', undefined, list);
 		},
-		
-		// update an item's file size:
-		updateFileSize: function(item, minified) {
-			// console.log('updateFileSize()', item, minified);
-			
-			try {
-				const size = ( minified ? item._srcmin.length : item._src );
-				item._sf.textContent = size.toBytesString();
-			}
-			catch(err) {
-				console.error(e.toString());
-			}
-		},
 
 		// update the topic size:
-		updateTopicSize: function(topic, size) {
-			//console.log('updateTopicSize()', topic, minified);
+		updateTopicState: function(topic, size, state) {
+			//console.log('updateTopicState()', topic.id, size, state);
 			
 			topic._sf.textContent = size.toBytesString(2, 'en', {0: '—'});
+			
+			// checked state for both, all checked, or mixed:
+			topic._cb.checked = ( state > 0 );
+			
+			// indeterminate state for mixed only:
+			topic._cb.indeterminate = ( state < 0 );
+		},
+
+		// update the total state:
+		updateTotalState: function(size, state) {
+			//console.log('updateTotalState()', size, state);
+			
+			// update the total size:
+			$app.gui._ref.total.textContent = size.toBytesString(1, 'en', {0: '—'});
+			
+			// checked state for both, all checked, or mixed:
+			$app.gui._ref.totalCb.checked = ( state > 0 );
+			
+			// indeterminate state for mixed only:
+			$app.gui._ref.totalCb.indeterminate = ( state < 0 );
 		},
 
 		// sets an item to an error state:
@@ -425,9 +441,13 @@ $app.gui = {
 		},
 		onCompileButtonClick: function(e) {
 			console.log('onCompileButtonClick', e);
+
+			$app.gui.showTab(1);
 		},
 		onBackButtonClick: function(e) {
 			console.log('onBackButtonClick', e);
+			
+			$app.gui.showTab(0);
 		},
 		onCopyButtonClick: function(e) {
 			// console.log('onCopyButtonClick', e);
@@ -449,7 +469,7 @@ $app.gui = {
 			$app.model.checkTopic( id, state );
 			
 			// update all sizes:
-			$app.model.calculateTopicSizes();
+			$app.model.recalculateAllSizes();
 	
 		},
 		onItemCheckBoxClick: function(e) {
@@ -463,12 +483,12 @@ $app.gui = {
 			$app.model.checkItem( id, state );
 			
 			// update all sizes:
-			$app.model.calculateTopicSizes();
+			$app.model.recalculateAllSizes();
 		},
 		onMinifyOptionChange: function(e) {
 			// console.log('onMinifyOptionChange', e);
 		
-			$app.model.calculateTopicSizes();
+			$app.model.recalculateAllSizes();
 		},
 		onReloadButtonClicked: function(e) {
 			// console.log('onReloadButtonClicked', e);

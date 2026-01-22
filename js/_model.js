@@ -14,29 +14,20 @@
  
 $app.model = {
 
-	/*_init: function() {
-		console.log('$app.model._init()');
-	},
-	
-	init: function() {
-		console.log('$app.model.init()');
-	},*/
-	
-	_data: [],
-	
-	load: function(baseUrl) {
+	// initialise the model (load topics file from server):
+	init: function(baseUrl) {
 		//console.log('$app.model.load("'+baseUrl+'")');
 
-		// shortcut to make the code more readable:
+		// 'this' is not available, as this init is not called by the $p initialiser.
+		// instead, let's use 'me' to refer to the object:
 		const me = $app.model;
-		const gui = $app.gui;
 
-		// load the index file:
+		// load the topics file:
 		JSON.load(baseUrl + 'index.json')
 		.then( result => {
 			
 			// show the loaded topics list in the UI:
-			gui.builder.makeTopicsList(result.topics);
+			$app.gui.builder.makeTopicsList(result.topics);
 
 			// store the topics in the internal storage:
 			me._data = result.topics;
@@ -51,9 +42,9 @@ $app.model = {
 				JSON.load(baseUrl + topic.path + 'index.json')
 				.then( json => {
 					topic._items = json;
-					gui.updater.updateTopicItems(topic, json);
+					$app.gui.updater.updateTopicItems(topic, json);
 					
-					// check if finished:
+					// check if all files finished loading::
 					toLoad -= 1;
 					if (toLoad <= 0) {
 						// initiate loading the source snippets:
@@ -64,19 +55,25 @@ $app.model = {
 
 		})
 		.catch( error => {
-			gui.error.show('network');
+			// if this occurs, we probably have a fundamental network error:
+			$app.gui.error.show('network');
 			console.error(error.toString());
 		});
 	},
+	
+	// internal data storage
+	// (array of topics):
+	_data: [],
 	
 	// find an item by ID:
 	findItem: function(id) {
 		//console.log('$app.model.findItem("'+id+'")');
 		
-		// shortcuts to make the code more readable:
+		// shortcut to make the code more readable:
 		const me = $app.model;
 
 		// search through all items:
+		// old-style for loops are fastest in this case!
 		let item = null;
 		for (let i = 0; i < me._data.length; i++) {
 			for (let j = 0; j < me._data[i]._items.length; j++) {
@@ -87,10 +84,8 @@ $app.model = {
 			}
 			if (item) break;
 		}
-		
 		return item;
 	},
-	
 	
 	// find a topic by ID:
 	findTopic: function(id) {
@@ -99,6 +94,7 @@ $app.model = {
 		const me = $app.model;
 
 		// find the topic:
+		// old-style for loops are fastest in this case!
 		let topic = null;
 		for (let i = 0; i < me._data.length; i++) {
 			if (me._data[i].id == id) {
@@ -119,10 +115,10 @@ $app.model = {
 			item._checked = state;
 			item._cb.checked = state;
 		}
-
 	},
 
 	// check/uncheck an entire topic:
+	// 'topic' parameter can be an ID string, or a topic object:
 	checkTopic: function(topic, state) {
 		//console.log('$app.model.checkTopic("'+id+'"',state,')');
 
@@ -134,51 +130,68 @@ $app.model = {
 			topic = $app.model.findTopic(topic);
 		}
 
-		if (topic) {
-			
-			// update checked status of all items:
+		if (topic) { // update checked status of all items:
 			topic._items.forEach( it => {
 				it._checked = state;
 				it._cb.checked = state;
 			});
-
 		} else {
 			console.error('TOPIC NOT FOUND:');
 		}			
 	},
 	
 	// recalculate all topic sizes:
-	calculateTopicSizes: function() {
-		//console.log('$app.model.calculateTopicSizes()');
+	recalculateAllSizes: function() {
+		// console.log('$app.model.recalculateAllSizes()');
 
-		// shortcuts to make the code more readable:
-		const gui = $app.gui;
-
-		// looking for minified sizes or readable ones?
-		const minified = gui.options.getMinifiedStatus();
+		// are we looking for minified sizes or full-size ones?
+		const minified = $app.gui.options.getMinifiedStatus();
 		
 		// total toolbox size:
-		let totalSize = 0;
+		let totalSize = 0; // total file size of the selection
+		let totalSelected = 0; // number of topics that contain selected items
 		
 		// loop over all topics:
 		$app.model._data.forEach( topic => {
 			
+			// find which items are checked:
 			let topicSize = 0;
+			let topicSelected = 0;
 			topic._items.forEach( it => {
-				if (it._checked) {
-					const size = ( minified ? it._srcmin.length || 0 : it._src.length || 0 );
-					topicSize += size;
-					totalSize += size;
+				
+				// update the item size field:
+				const itemSize = ( minified ? it._srcmin.length || 0 : it._src.length || 0 );
+				it._sf.textContent = itemSize.toBytesString();
+
+				// calculate total sizes (iff selected)
+				if (it._checked && (it._srcmin || it._src)) {
+					topicSize += itemSize;
+					totalSize += itemSize;
+					topicSelected += 1;
 				}
 			});
-			gui.updater.updateTopicSize(topic, topicSize);
 			
-			// display the total size:
-			gui.interaction.endBusy(totalSize.toBytesString(2, 'en', {0: '—'}));
-		});
+			// update the topic select box:
+			let topicState = Math.sign(topicSelected); // 0 or 1
+			if ( topicState > 0 && topicSelected < topic._items.length) {
+				topicState = -1; // mixed state!
+			}
+			
+			// count towards the total checkbox?
+			totalSelected += ( topicState > 0 ? 1 : 0 ); // also mixed items count as 1
 
-		//gui.updater.updateTopicSize(topic, minified);
+			// update the size field for the topic:
+			$app.gui.updater.updateTopicState(topic, topicSize, topicState);
+		});
 		
+		// determine the total checkbox state:
+		let totalState = Math.sign(totalSelected); // 0 or 1
+		if ( totalState > 0 && totalSelected < $app.model._data.length) {
+			totalState = -1; // mixed state!
+		}
+
+		// display the total size:
+		$app.gui.updater.updateTotalState(totalSize, totalState);
 	},
 	
 	// check/uncheck *all* items:
@@ -194,21 +207,19 @@ $app.model = {
 		});
 		
 		// recalculate the selected sizes:
-		$app.model.calculateTopicSizes()
-
+		$app.model.recalculateAllSizes()
 	},
 
-	// load all the source snippets:
+	// load all the source snippets (internal)
 	_loadSourceSnippets: function(baseUrl) {
 		//console.log('$app.model._loadSourceSnippets('+baseUrl+')');
 
-		// shortcuts to make the code more readable:
+		// shortcut to make the code more readable:
 		const me = $app.model;
-		const gui = $app.gui;
 				
 		// lock, and get the status of the minified button:
-		gui.options.lockMinifiedCB(true);
-		const minified = gui.options.getMinifiedStatus();
+		$app.gui.options.lockMinifiedCB(true);
+		const minified = $app.gui.options.getMinifiedStatus();
 
 		// count the total snippet files to be loaded:
 		me._data.forEach( topic => {
@@ -228,10 +239,9 @@ $app.model = {
 				me.__loadSnippet(baseUrl, topic, it, false, !minified, me.__loadSnippetCallback);
 			});
 		});
-		
-		// now the same for the non-minified versions:
-		// TODO!
 	},
+	
+	// load one specific snippet (private)
 	__loadSnippet: async function(baseUrl, topic, item, minified, show, callback) {
 		//console.log('$app.model.__loadSnippet()', baseUrl, topic, item, minified);
 
@@ -263,7 +273,7 @@ $app.model = {
 				item._checked = false;
 				gui.updater.setItemError(item);
 			} else if (show) {
-				gui.updater.updateFileSize(item, minified);
+				item._sf.textContent = txt.length.toBytesString();
 			}
 		})
 		.catch( error => {
@@ -275,10 +285,10 @@ $app.model = {
 		});
 	},
 	
-	// total number of snippets to be loaded:
+	// total number of snippets to be loaded (private)
 	__totalSnippetLoads: 0,
 	
-	// callback after every snippet was loaded:
+	// callback after every snippet was loaded (private)
 	__loadSnippetCallback: function() {
 		
 		// shortcuts to make the code more readable:
@@ -291,6 +301,5 @@ $app.model = {
 			// console.info("Loading finished, entering interactive mode:");
 			gui.interaction.start();
 		}
-		
 	}
 }

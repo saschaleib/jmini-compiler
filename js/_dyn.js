@@ -26,11 +26,11 @@ $p.dyn.jMini = {
 		// find the root element (use the parent as fallback):
 		const root = document.getElementById(json.to) || parent;
 		
-		// Build the interface:
-		$app.gui.prepare(root);
+		// initialise the GUI:
+		$app.gui.init(root);
 		
-		// load the model:
-		$app.model.load( json.from || './' );
+		// initialise the model:
+		$app.model.init( json.from || './' );
 	}
 }
 
