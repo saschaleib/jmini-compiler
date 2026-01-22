@@ -6,8 +6,8 @@
  *
  * @author Sascha Leib <ad@hominem.info>
  *
- * @version 0.0.1
- * @date 2026-01-20
+ * @version 2.0.0
+ * @date 2026-01-22
  * @package jmini-compiler
  * @requires jMini Core
  */

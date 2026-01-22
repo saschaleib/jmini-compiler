@@ -73,12 +73,13 @@
 				background-color: #FBFCFB;
 				color: #1B1B1B;
 				border: #ECEDEC solid 1px;
-				padding: 1em;
+				padding: .75em .5em .75em 1.5em;
 				margin: 1pt 0;
 				border-radius: .75em .75em 1.5pt 1.5pt;
 				display: grid;
-				grid-template-columns: 1.5em auto min-content;
+				grid-template-columns: min-content auto max-content;
 				column-gap: 1em;
+				align-items: center;
 				line-height: 2em;
 				box-shadow: 0 1px rgba(0,0,0,.14), 0 0 2px rgba(0,0,0,.12);
 				white-space: nowrap;
@@ -132,10 +133,12 @@
 				summary {
 					& {
 						display: grid;
-						grid-template-columns: 1.7em 1.5em min-content auto min-content;
+						grid-template-columns: 1.7em min-content min-content auto max-content;
 						column-gap: .5em;
+						align-items: center;
 						white-space: nowrap;
 						padding: .25em 0;
+						font-weight: normal;
 						cursor: pointer;
 					}
 					&::before {
@@ -143,6 +146,7 @@
 						display: inline-block;
 						background: transparent url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M5,13V12H11V6H12V12H18V13H12V19H11V13H5Z' style='fill:%230077D4' /%3E%3C/svg%3E") center no-repeat;
 						width: 1.75em; height: 1.25em;
+						margin: 0;
 					}
 					label {
 						font-weight: 600;
@@ -159,10 +163,11 @@
 					li {
 						& {
 							display: grid;
-							grid-template-columns: 1.5em min-content auto min-content;
+							grid-template-columns: min-content min-content auto min-content;
 							column-gap: .5em;
+							align-items: center;
 							white-space: nowrap;
-							margin: .25em 0 .25em 4.1em;
+							margin: .25em 0 .25em 3.7em;
 						}
 						&.error {
 							color: #A4000F;
@@ -243,19 +248,17 @@
 					}
 					p {
 						& {
-							padding: .5em .6em 1em 3.5em;
-							margin: 0;
 							display: grid;
-							grid-template-columns: auto 3em;
+							margin: 0;
+							padding: .5em .6em 1em 3.5em;
+							grid-template-columns: auto min-content;
+							align-items: center;
 							text-align: left;
 						}
 						&:hover {
 							background-color: #F4F7F9;
 						}
 						input {
-							grid-column: 2;
-							grid-row: 1 / span 2;
-							align-self: start;
 							min-width: 1.4em;
 							min-height: 1.4em;
 							cursor: pointer;
@@ -374,6 +377,7 @@
 			white-space: pre;
 			text-wrap: wrap;
 			word-break: break-all;
+			font-family: monospace;
 			margin-bottom: 1em;
 			padding: .25em .25em 1em .25em ;
 			background-color: #FFF;
