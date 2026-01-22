@@ -470,7 +470,17 @@ $p.dyn.jMini.gui = {
 	_callback: {
 		
 		onGlobalCheckboxChange: function(e) {
-			console.log('onGlobalCheckboxChange', e);
+			//console.log('onGlobalCheckboxChange', e);
+			
+			// shortcuts to make the code more readable:
+			const model = $p.dyn.jMini.model;
+			
+			// get the new state:
+			const state = e.target.checked;
+			
+			// check/uncheck all in model:
+			model.checkAll(state);
+
 		},
 		onCompileButtonClick: function(e) {
 			console.log('onCompileButtonClick', e);
@@ -521,7 +531,12 @@ $p.dyn.jMini.gui = {
 			model.calculateTopicSizes();
 		},
 		onMinifyOptionChange: function(e) {
-			console.log('onMinifyOptionChange', e);
+			// console.log('onMinifyOptionChange', e);
+			
+			// shortcuts to make the code more readable:
+			const model = $p.dyn.jMini.model;
+			
+			model.calculateTopicSizes();
 		},
 		onReloadButtonClicked: function(e) {
 			// console.log('onReloadButtonClicked', e);

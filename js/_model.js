@@ -91,6 +91,24 @@ $p.dyn.jMini.model = {
 		return item;
 	},
 	
+	
+	// find a topic by ID:
+	findTopic: function(id) {
+
+		// shortcuts to make the code more readable:
+		const me = $p.dyn.jMini.model;
+
+		// find the topic:
+		let topic = null;
+		for (let i = 0; i < me._data.length; i++) {
+			if (me._data[i].id == id) {
+				topic = me._data[i];
+				break;
+			}
+		}
+		return topic;
+	},
+	
 	// check/uncheck item by ID:
 	checkItem: function(id, state) {
 		//console.log('$p.dyn.jMini.model.checkItem("'+id+'"',state,')');
@@ -108,21 +126,18 @@ $p.dyn.jMini.model = {
 	},
 
 	// check/uncheck an entire topic:
-	checkTopic: function(id, state) {
+	checkTopic: function(topic, state) {
 		//console.log('$p.dyn.jMini.model.checkTopic("'+id+'"',state,')');
 
 		// shortcuts to make the code more readable:
 		const me = $p.dyn.jMini.model;
 		const gui = $p.dyn.jMini.gui;
 
-		// find the topic:
-		let topic = null;
-		for (let i = 0; i < me._data.length; i++) {
-			if (me._data[i].id == id) {
-				topic = me._data[i];
-				break;
-			}
+		// if the topic is passed by ID, we first need to find the object:
+		if (typeof topic === 'string' || topic instanceof String) {
+			topic = me.findTopic(topic);
 		}
+
 		if (topic) {
 			
 			// update checked status of all items:
@@ -132,7 +147,7 @@ $p.dyn.jMini.model = {
 			});
 
 		} else {
-			console.error('TOPIC NOT FOUND:', id);
+			console.error('TOPIC NOT FOUND:');
 		}			
 	},
 	
@@ -169,6 +184,27 @@ $p.dyn.jMini.model = {
 
 		//gui.updater.updateTopicSize(topic, minified);
 		
+	},
+	
+	// check/uncheck *all* items:
+	checkAll: function(state) {
+		console.log('$p.dyn.jMini.model.checkAll(',state,')');
+
+		// shortcuts to make the code more readable:
+		const me = $p.dyn.jMini.model;
+		const gui = $p.dyn.jMini.gui;
+
+		me._data.forEach( topic => {
+			me.checkTopic(topic, state);
+			
+			topic._checked = state;
+			topic._cb.checked = state;
+			
+		});
+		
+		// recalculate the selected sizes:
+		me.calculateTopicSizes()
+
 	},
 
 	// load all the source snippets:

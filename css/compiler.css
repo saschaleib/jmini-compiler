@@ -252,6 +252,10 @@
 							align-self: start;
 							min-width: 1.4em;
 							min-height: 1.4em;
+							cursor: pointer;
+						}
+						input[disabled] {
+							cursor: not-allowed;
 						}
 					}
 				}		
