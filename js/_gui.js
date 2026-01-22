@@ -11,21 +11,18 @@
  * @package jmini-compiler
  * @requires jMini Core
  */
- 
-$p.dyn.jMini.gui = {
-	
-	prepare: function(root) {
-		//console.log('$p.dyn.jMini.gui.prepare(',root,')');
 
-		// shortcuts to make the code more readable:
-		const me = $p.dyn.jMini.gui;
-		const ref = me._ref;
+$app.gui = {
+	
+	// prepare the UI pre-initialisation:
+	prepare: function(root) {
+		//console.log('$app.gui.prepare(',root,')');
 
 		// shortcut to make the code more readable:
-		const builder = $p.dyn.jMini.gui.builder;
+		const builder = $app.gui.builder;
 		
 		// create the selection tab:
-		ref.tabs[0] = root.appendNew('div', { 'id': 'jmc__tab1'},
+		$app.gui._ref.tabs[0] = root.appendNew('div', { 'id': 'jmc__tab1'},
 		[
 			builder.makeSelHeader(),
 			builder.makeErrorMessages(),
@@ -34,7 +31,7 @@ $p.dyn.jMini.gui = {
 		]);
 
 		// create the target tab tab:
-		ref.tabs[1] = root.appendNew('div', {
+		$app.gui._ref.tabs[1] = root.appendNew('div', {
 			'id': 'jmc__tab2',
 			//'hidden': 'hidden'
 		}, [
@@ -49,37 +46,28 @@ $p.dyn.jMini.gui = {
 		// start interaction:
 		start: function() {
 			
-			// shortcuts to make the code more readable:
-			const me = $p.dyn.jMini.gui;
-			const ref = me._ref;
-
 			// enable UI items:
-			ref.compileBtn.disabled = false;
-			ref.options.minify.disabled = false;
+			$app.gui._ref.compileBtn.disabled = false;
+			$app.gui._ref.options.minify.disabled = false;
 
 			// end the busy animation:
-			me.interaction.endBusy();
+			$app.gui.interaction.endBusy();
 			
 		},
 		
-		// start the busy interaction:
+		// start the busy state:
 		startBusy: function() {
-			
-			// shortcuts to make the code more readable:
-			const me = $p.dyn.jMini.gui;
-			const ref = me._ref;
 
-			ref.total.classList.add('loading');
-			ref.total.textContent = "loading";
+			$app.gui._ref.total.classList.add('loading');
+			$app.gui._ref.total.textContent = "loading";
+
 		},
+		
+		// end the busy state; optionally set a file size text
 		endBusy: function(txt = '—') {
-			
-			// shortcuts to make the code more readable:
-			const me = $p.dyn.jMini.gui;
-			const ref = me._ref;
 
-			ref.total.classList.remove('loading');
-			ref.total.textContent = txt;
+			$app.gui._ref.total.classList.remove('loading');
+			$app.gui._ref.total.textContent = txt;
 		}
 
 	},
@@ -87,17 +75,14 @@ $p.dyn.jMini.gui = {
 	// functions for showing errors
 	error: {
 		show: function(type) {
-			//console.log('$p.dyn.jMini.gui.error.show(',type,')');
-			
-			// shortcuts to make the code more readable:
-			const me = $p.dyn.jMini.gui;
+			//console.log('$app.gui.error.show(',type,')');
 
 			switch (type) {
 				case 'network':
-					me._ref.error.network.hidden = false;
+					$app.gui._ref.error.network.hidden = false;
 					break;
 				case 'incomplete':
-					me._ref.error.incomplete.hidden = false;
+					$app.gui._ref.error.incomplete.hidden = false;
 					break;
 				default:
 					console.error("Unknown error type:", type);
@@ -112,7 +97,7 @@ $p.dyn.jMini.gui = {
 		lockMinifiedCB: function(lock) {
 			
 			// shortcuts to make the code more readable:
-			const minifyCB = $p.dyn.jMini.gui._ref.options.minify;
+			const minifyCB = $app.gui._ref.options.minify;
 			
 			if (minifyCB) {
 				minifyCB.disabled = lock;
@@ -122,7 +107,7 @@ $p.dyn.jMini.gui = {
 		// returns the current status of the Minify button:
 		getMinifiedStatus: function() {
 			// shortcuts to make the code more readable:
-			const minifyCB = $p.dyn.jMini.gui._ref.options.minify;
+			const minifyCB = $app.gui._ref.options.minify;
 			
 			if (minifyCB) {
 				return minifyCB.checked;
@@ -154,14 +139,9 @@ $p.dyn.jMini.gui = {
 	
 		// build all the header elements for the selection tab:
 		makeSelHeader: function() {
-			
-			// shortcuts to make the code more readable:
-			const me = $p.dyn.jMini.gui;
-			const cb = me._callback;
-			const ref = me._ref;
-			
+		
 			// create the total/busy element:
-			ref.total = HTMLElement.new('span', {
+			$app.gui._ref.total = HTMLElement.new('span', {
 					'class': 'loading'
 				}, "loading");
 			
@@ -172,13 +152,13 @@ $p.dyn.jMini.gui = {
 					'type': 'checkbox',
 					'id': 'jmc__globalcb',
 					'title': "select/unselect all"
-				}).on('change', cb.onGlobalCheckboxChange),
+				}).on('change', $app.gui._cb.onGlobalCheckboxChange),
 				
 				HTMLElement.new('label', {
 					'for': 'jmc__globalcb'
 				}, "jMini Toolbox"),
 				
-				ref.total
+				$app.gui._ref.total
 			]);
 			
 			return header;
@@ -186,30 +166,25 @@ $p.dyn.jMini.gui = {
 		
 		// build a section of error messages to be shown as needed:
 		makeErrorMessages: function() {
-			
-			// shortcuts to make the code more readable:
-			const me = $p.dyn.jMini.gui;
-			const cb = me._callback;
-			const ref = me._ref;
-			
+
 			return HTMLElement.new('div', {
 				'class': 'errors'
 			}, [
 			
-				ref.error.network = HTMLElement.new('p', { // Network error
+				$app.gui._ref.error.network = HTMLElement.new('p', { // Network error
 					'class': 'error',
 					'hidden': 'hidden'
 				}, [
 					HTMLElement.new('span', undefined, "The index files could not be loaded. Either they don’t exist, or a network error occured. Please see the browser console for more information."),
-					HTMLElement.new('button', undefined, "Reload").on('click', cb.onReloadButtonClicked)
+					HTMLElement.new('button', undefined, "Reload").on('click', $app.gui._cb.onReloadButtonClicked)
 				]),
 
-				ref.error.incomplete = HTMLElement.new('p', { // Incomplete data
+				$app.gui._ref.error.incomplete = HTMLElement.new('p', { // Incomplete data
 					'class': 'warning',
 					'hidden': 'hidden'
 				}, [
 					HTMLElement.new('span', undefined, "The code repository was found, but the source data could not be completely loaded. This may be due to network problems, or because there is incorrect data in the repository. Some modules may not be available."),
-					HTMLElement.new('button', undefined, "Reload").on('click', cb.onReloadButtonClicked)
+					HTMLElement.new('button', undefined, "Reload").on('click', $app.gui._cb.onReloadButtonClicked)
 				])
 
 			]);
@@ -218,29 +193,13 @@ $p.dyn.jMini.gui = {
 		// prepare the high-level list (content will be added later):
 		makeTopicsElement: function(topics) {
 
-			// shortcut to make the code more readable:
-			const me = $p.dyn.jMini.gui;
-			
-			me._ref.topicList = HTMLElement.new('div', {
+			return $app.gui._ref.topicList = HTMLElement.new('div', {
 				'class': 'content'
 			});
-
-			return me._ref.topicList
 		},
 		
 		// build all the footer elements for the selection tab:
 		makeSelFooter: function() {
-			
-			// shortcuts to make the code more readable:
-			const me = $p.dyn.jMini.gui;
-			const cb = me._callback;
-			const ref = me._ref;
-			
-			// create the compile button:
-			ref.compileBtn = HTMLElement.new('button', {
-				'type': 'submit',
-				'disabled': 'disabled'
-			},"Compile").on('click', cb.onCompileButtonClick);
 
 			// make the rest of the footer:
 			const footer = HTMLElement.new('footer', undefined, [
@@ -259,13 +218,13 @@ $p.dyn.jMini.gui = {
 							HTMLElement.new('label', {
 								'for': 'jmc__chk__minify'
 							}, "Use minified code"),
-							ref.options.minify = HTMLElement.new('input', {
+							$app.gui._ref.options.minify = HTMLElement.new('input', {
 								'type': 'checkbox',
 								'id': 'jmc__chk__minify',
 								'value': 'minify',
 								'checked': 'checked',
 								'disabled': 'disabled'
-							}).on('change', cb.onMinifyOptionChange),
+							}).on('change', $app.gui._cb.onMinifyOptionChange),
 							HTMLElement.new('small', undefined,
 								"Use the minified versions of the code (significantly reduces the file size!)")
 						]),
@@ -274,7 +233,7 @@ $p.dyn.jMini.gui = {
 							HTMLElement.new('label', {
 								'for': 'jmc__chk__license'
 							}, "Insert license"),
-							ref.options.license = HTMLElement.new('input', {
+							$app.gui._ref.options.license = HTMLElement.new('input', {
 								'type': 'checkbox',
 								'id': 'jmc__chk__license',
 								'value': 'license'
@@ -287,7 +246,7 @@ $p.dyn.jMini.gui = {
 							HTMLElement.new('label', {
 								'for': 'jmc__chk__annotate'
 							}, "Annotate"),
-							ref.options.annotate = HTMLElement.new('input', {
+							$app.gui._ref.options.annotate = HTMLElement.new('input', {
 								'type': 'checkbox',
 								'id': 'jmc__chk__annotate',
 								'value': 'annotate'
@@ -300,7 +259,11 @@ $p.dyn.jMini.gui = {
 
 				HTMLElement.new('p', {
 					'class': 'jmc_footer-buttons'
-				}, ref.compileBtn),
+				}, $app.gui._ref.compileBtn = HTMLElement.new('button', {
+						'type': 'submit',
+						'disabled': 'disabled'
+					},"Compile").on('click', $app.gui._cb.onCompileButtonClick)
+				),
 			]);
 
 			return footer;
@@ -308,23 +271,18 @@ $p.dyn.jMini.gui = {
 	
 		// build all the header elements for the souce code tab:
 		makeCodeHeader: function() {
-	
-			// shortcuts to make the code more readable:
-			const me = $p.dyn.jMini.gui;
-			const cb = me._callback;
-			const ref = me._ref;
-			
+
 			const header = HTMLElement.new('header', undefined,
 			[
 				HTMLElement.new('button', {
 					'type': 'reset'
 				}, HTMLElement.new('span', undefined, "Back"))
-				.on('click', cb.onBackButtonClick),
+				.on('click', $app.gui._cb.onBackButtonClick),
 
 				HTMLElement.new('button', {
 					'type': 'submit'
 				}, HTMLElement.new('span', undefined, "Copy"))
-				.on('click', cb.onCopyButtonClick)
+				.on('click', $app.gui._cb.onCopyButtonClick)
 
 			]);
 
@@ -333,12 +291,9 @@ $p.dyn.jMini.gui = {
 		
 		// build the target code field:
 		makeCodeField: function() {
-		
-			// shortcuts to make the code more readable:
-			const me = $p.dyn.jMini.gui;
 
 			return HTMLElement.new('div', undefined, [
-				me._ref.sourceField = HTMLElement.new('textarea', {
+				$app.gui._ref.sourceField = HTMLElement.new('textarea', {
 					'id': 'jmc__source'
 				}),
 				HTMLElement.new('label', {
@@ -353,11 +308,6 @@ $p.dyn.jMini.gui = {
 		makeTopicsList: function(topics) {
 			//console.log('makeTopicsList()', topics);
 	
-			// shortcuts to make the code more readable:
-			const me = $p.dyn.jMini.gui;
-			const cb = me._callback;
-			const ref = me._ref;
-
 			// add all the topics:
 			topics.forEach( topic => {
 				
@@ -366,7 +316,7 @@ $p.dyn.jMini.gui = {
 					'type': 'checkbox',
 					'data-tid': topic.id,
 					'id': 'jmc__topiccb_' + topic.id
-				}).on('click', cb.onTopicCheckBoxClick);
+				}).on('click', $app.gui._cb.onTopicCheckBoxClick);
 				
 				// now the size field:
 				topic._sf = HTMLElement.new('span', {
@@ -374,7 +324,7 @@ $p.dyn.jMini.gui = {
 				}, "—")
 				
 				// put it all together:
-				topic._e = ref.topicList.appendNew('details', {
+				topic._e = $app.gui._ref.topicList.appendNew('details', {
 						//'open': 'open'
 					},
 					HTMLElement.new('summary', undefined, [
@@ -399,9 +349,6 @@ $p.dyn.jMini.gui = {
 		updateTopicItems: function(topic, items) {
 			//console.log('updateTopicItems()', topic, topic._items);
 
-			// shortcuts to make the code more readable:
-			const me = $p.dyn.jMini.gui;
-
 			// map items array to HTML list items:
 			const list = items.map( it => {
 				
@@ -410,7 +357,7 @@ $p.dyn.jMini.gui = {
 					'type': 'checkbox',
 					'data-mid': it.id,
 					'id': 'jmc__funcb_' + it.id
-				}).on('click', me._callback.onItemCheckBoxClick);
+				}).on('click', $app.gui._cb.onItemCheckBoxClick);
 			
 				// now the size field:
 				it._sf = HTMLElement.new('span', {
@@ -467,19 +414,13 @@ $p.dyn.jMini.gui = {
 	},
 	
 	/* Callback functions for UI elements */
-	_callback: {
+	_cb: {
 		
 		onGlobalCheckboxChange: function(e) {
 			//console.log('onGlobalCheckboxChange', e);
 			
-			// shortcuts to make the code more readable:
-			const model = $p.dyn.jMini.model;
-			
-			// get the new state:
-			const state = e.target.checked;
-			
 			// check/uncheck all in model:
-			model.checkAll(state);
+			$app.model.checkAll(e.target.checked);
 
 		},
 		onCompileButtonClick: function(e) {
@@ -492,7 +433,7 @@ $p.dyn.jMini.gui = {
 			// console.log('onCopyButtonClick', e);
 
 			// select and copy text:
-			$p.dyn.jMini.gui._ref.sourceField.select();
+			$app.gui._ref.sourceField.select();
 			document.execCommand('copy');
 
 			// console.log("Code is now in clipboard!");
@@ -500,43 +441,34 @@ $p.dyn.jMini.gui = {
 		onTopicCheckBoxClick: function(e) {
 			//console.log('onTopicCheckBoxChange', e);
 
-			// shortcuts to make the code more readable:
-			const model = $p.dyn.jMini.model;
-
 			// get the id and state:
 			const id = e.target.getAttribute('data-tid');
 			const state = e.target.checked;
 			
 			// select all sub-items:
-			model.checkTopic( id, state );
+			$app.model.checkTopic( id, state );
 			
 			// update all sizes:
-			model.calculateTopicSizes();
+			$app.model.calculateTopicSizes();
 	
 		},
 		onItemCheckBoxClick: function(e) {
 			// console.log('onItemCheckBoxClick', e);
-
-			// shortcuts to make the code more readable:
-			const model = $p.dyn.jMini.model;
 
 			// get the id and state:
 			const id = e.target.getAttribute('data-mid');
 			const state = e.target.checked;
 			
 			// select all sub-items:
-			model.checkItem( id, state );
+			$app.model.checkItem( id, state );
 			
 			// update all sizes:
-			model.calculateTopicSizes();
+			$app.model.calculateTopicSizes();
 		},
 		onMinifyOptionChange: function(e) {
 			// console.log('onMinifyOptionChange', e);
-			
-			// shortcuts to make the code more readable:
-			const model = $p.dyn.jMini.model;
-			
-			model.calculateTopicSizes();
+		
+			$app.model.calculateTopicSizes();
 		},
 		onReloadButtonClicked: function(e) {
 			// console.log('onReloadButtonClicked', e);

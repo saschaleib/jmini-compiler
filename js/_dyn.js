@@ -11,7 +11,8 @@
  * @package jmini-compiler
  * @requires jMini Core
  */
- 
+
+/* Add an auto-loader module to $p.dyn */
 $p.dyn.jMini = {
 
 	_init: function() {
@@ -22,17 +23,18 @@ $p.dyn.jMini = {
 	action: function(parent, json) {
 		//console.log('$p.dyn.jMini.action(',parent,',',json,')');
 		
-		// shortcuts to make the code more readable:
-		const me = $p.dyn.jMini;
-		const model = $p.dyn.jMini.model;
-		
 		// find the root element (use the parent as fallback):
 		const root = document.getElementById(json.to) || parent;
 		
 		// Build the interface:
-		me.gui.prepare(root);
+		$app.gui.prepare(root);
 		
 		// load the model:
-		model.load( json.from || './' );
+		$app.model.load( json.from || './' );
 	}
 }
+
+/* app root item */
+const $app = {
+	version: 2.0
+};

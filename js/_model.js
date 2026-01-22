@@ -1,6 +1,6 @@
 'use strict'; // Encoding: UTF-8
 /**
- * Data Model for the jMini Compiler Tool
+ * Data Model for the jMini Compiler Tool App
  *
  * Released under the MIT license
  *
@@ -12,24 +12,24 @@
  * @requires jMini Core
  */
  
-$p.dyn.jMini.model = {
+$app.model = {
 
 	/*_init: function() {
-		console.log('$p.dyn.jMini.model._init()');
+		console.log('$app.model._init()');
 	},
 	
 	init: function() {
-		console.log('$p.dyn.jMini.model.init()');
+		console.log('$app.model.init()');
 	},*/
 	
 	_data: [],
 	
 	load: function(baseUrl) {
-		//console.log('$p.dyn.jMini.model.load("'+baseUrl+'")');
+		//console.log('$app.model.load("'+baseUrl+'")');
 
-		// shortcuts to make the code more readable:
-		const me = $p.dyn.jMini.model;
-		const gui = $p.dyn.jMini.gui;
+		// shortcut to make the code more readable:
+		const me = $app.model;
+		const gui = $app.gui;
 
 		// load the index file:
 		JSON.load(baseUrl + 'index.json')
@@ -71,10 +71,10 @@ $p.dyn.jMini.model = {
 	
 	// find an item by ID:
 	findItem: function(id) {
-		//console.log('$p.dyn.jMini.model.findItem("'+id+'")');
+		//console.log('$app.model.findItem("'+id+'")');
 		
 		// shortcuts to make the code more readable:
-		const me = $p.dyn.jMini.model;
+		const me = $app.model;
 
 		// search through all items:
 		let item = null;
@@ -96,7 +96,7 @@ $p.dyn.jMini.model = {
 	findTopic: function(id) {
 
 		// shortcuts to make the code more readable:
-		const me = $p.dyn.jMini.model;
+		const me = $app.model;
 
 		// find the topic:
 		let topic = null;
@@ -111,13 +111,10 @@ $p.dyn.jMini.model = {
 	
 	// check/uncheck item by ID:
 	checkItem: function(id, state) {
-		//console.log('$p.dyn.jMini.model.checkItem("'+id+'"',state,')');
+		//console.log('$app.model.checkItem("'+id+'"',state,')');
 		
-		// shortcuts to make the code more readable:
-		const me = $p.dyn.jMini.model;
-
 		// find the item:
-		const item = me.findItem(id);
+		const item = $app.model.findItem(id);
 		if (item) {
 			item._checked = state;
 			item._cb.checked = state;
@@ -127,15 +124,14 @@ $p.dyn.jMini.model = {
 
 	// check/uncheck an entire topic:
 	checkTopic: function(topic, state) {
-		//console.log('$p.dyn.jMini.model.checkTopic("'+id+'"',state,')');
+		//console.log('$app.model.checkTopic("'+id+'"',state,')');
 
 		// shortcuts to make the code more readable:
-		const me = $p.dyn.jMini.model;
-		const gui = $p.dyn.jMini.gui;
+		const gui = $app.gui;
 
 		// if the topic is passed by ID, we first need to find the object:
 		if (typeof topic === 'string' || topic instanceof String) {
-			topic = me.findTopic(topic);
+			topic = $app.model.findTopic(topic);
 		}
 
 		if (topic) {
@@ -153,11 +149,10 @@ $p.dyn.jMini.model = {
 	
 	// recalculate all topic sizes:
 	calculateTopicSizes: function() {
-		//console.log('$p.dyn.jMini.model.calculateTopicSizes()');
+		//console.log('$app.model.calculateTopicSizes()');
 
 		// shortcuts to make the code more readable:
-		const me = $p.dyn.jMini.model;
-		const gui = $p.dyn.jMini.gui;
+		const gui = $app.gui;
 
 		// looking for minified sizes or readable ones?
 		const minified = gui.options.getMinifiedStatus();
@@ -166,7 +161,7 @@ $p.dyn.jMini.model = {
 		let totalSize = 0;
 		
 		// loop over all topics:
-		me._data.forEach( topic => {
+		$app.model._data.forEach( topic => {
 			
 			let topicSize = 0;
 			topic._items.forEach( it => {
@@ -188,14 +183,10 @@ $p.dyn.jMini.model = {
 	
 	// check/uncheck *all* items:
 	checkAll: function(state) {
-		console.log('$p.dyn.jMini.model.checkAll(',state,')');
+		// console.log('$app.model.checkAll(',state,')');
 
-		// shortcuts to make the code more readable:
-		const me = $p.dyn.jMini.model;
-		const gui = $p.dyn.jMini.gui;
-
-		me._data.forEach( topic => {
-			me.checkTopic(topic, state);
+		$app.model._data.forEach( topic => {
+			$app.model.checkTopic(topic, state);
 			
 			topic._checked = state;
 			topic._cb.checked = state;
@@ -203,17 +194,17 @@ $p.dyn.jMini.model = {
 		});
 		
 		// recalculate the selected sizes:
-		me.calculateTopicSizes()
+		$app.model.calculateTopicSizes()
 
 	},
 
 	// load all the source snippets:
 	_loadSourceSnippets: function(baseUrl) {
-		//console.log('$p.dyn.jMini.model._loadSourceSnippets('+baseUrl+')');
+		//console.log('$app.model._loadSourceSnippets('+baseUrl+')');
 
 		// shortcuts to make the code more readable:
-		const me = $p.dyn.jMini.model;
-		const gui = $p.dyn.jMini.gui;
+		const me = $app.model;
+		const gui = $app.gui;
 				
 		// lock, and get the status of the minified button:
 		gui.options.lockMinifiedCB(true);
@@ -242,11 +233,10 @@ $p.dyn.jMini.model = {
 		// TODO!
 	},
 	__loadSnippet: async function(baseUrl, topic, item, minified, show, callback) {
-		//console.log('$p.dyn.jMini.model.__loadSnippet()', baseUrl, topic, item, minified);
+		//console.log('$app.model.__loadSnippet()', baseUrl, topic, item, minified);
 
 		// shortcuts to make the code more readable:
-		const me = $p.dyn.jMini.model;
-		const gui = $p.dyn.jMini.gui;
+		const gui = $app.gui;
 
 		// Load the topic file:
 		fetch(baseUrl + topic.path + item.file + ( minified ? '.min' : '' ) + '.js')
@@ -292,13 +282,12 @@ $p.dyn.jMini.model = {
 	__loadSnippetCallback: function() {
 		
 		// shortcuts to make the code more readable:
-		const me = $p.dyn.jMini.model;
-		const gui = $p.dyn.jMini.gui;
+		const gui = $app.gui;
 
-		me.__totalSnippetLoads--; // countdown
+		$app.model.__totalSnippetLoads--; // countdown
 		
 		// finished? go interactive
-		if (me.__totalSnippetLoads <= 0) {
+		if ($app.model.__totalSnippetLoads <= 0) {
 			// console.info("Loading finished, entering interactive mode:");
 			gui.interaction.start();
 		}
