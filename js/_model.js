@@ -210,6 +210,41 @@ $app.model = {
 		$app.model.recalculateAllSizes()
 	},
 
+	// compile the library and put the code into the source field:
+	compile: function() {
+				
+		// get the user settings as an object:
+		const opt = $app.gui.options.getUserOptions();
+		
+		// always start with a "use strict" directive:
+		let code = "'use strict';";
+
+		/* add a license text, if configured */
+		if (opt.license) {
+			
+			const year = 2026;
+					
+			code += "\n/* Copyright " + year + " Sascha Leib\n *\n";
+			code += " * Permission is hereby granted, free of charge, to any person obtaining a copy of this software\n * and associated documentation files (the “Software”), to deal in the Software without restriction,\n * including without limitation the rights to use, copy, modify, merge, publish, distribute,\n * sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is\n * furnished to do so, subject to the following conditions:\n *\n";
+			code += " * The above copyright notice and this permission notice shall be included in all copies or substantial\n * portions of the Software.\n *\n";
+			code += " * THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT\n * NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.\n * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,\n * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE\n * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.\n */\n";
+		}
+		
+		/* loop over all topics and items: */
+		$app.model._data.forEach( topic => {
+			topic._items.forEach( it => {
+				
+				if (it._checked && (it._src ||it._srcmin)) {
+					code += ( opt.annotate ? "\n/* " + it.name + " */ " : '' )
+					+ ( opt.minify ? it._srcmin || '/* MISSING */' : "\n" + it._src || '/* MISSING */');
+				}
+			});
+		});
+
+		return code; // success!
+		
+	},
+
 	// load all the source snippets (internal)
 	_loadSourceSnippets: function(baseUrl) {
 		//console.log('$app.model._loadSourceSnippets('+baseUrl+')');

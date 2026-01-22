@@ -122,6 +122,21 @@ $app.gui = {
 				return minifyCB.checked;
 			}
 			return true; // in case not available: use minified!
+		},
+		
+		// return a settings object representing the user options settings:
+		getUserOptions: function() {
+			
+			// shortcuts to make the code more readable:
+			const ref = $app.gui._ref;
+			
+			const r = {
+				minify: ref.options.minify.checked,
+				license: ref.options.license.checked,
+				annotate: ref.options.annotate.checked
+			}
+			
+			return r;
 		}
 	},
 	
@@ -440,12 +455,19 @@ $app.gui = {
 
 		},
 		onCompileButtonClick: function(e) {
-			console.log('onCompileButtonClick', e);
-
-			$app.gui.showTab(1);
+			// console.log('onCompileButtonClick', e);
+			
+			// compile the source code and put it into the 
+			const code = $app.model.compile();
+			if (code) {
+				$app.gui._ref.sourceField.value = code;
+				$app.gui.showTab(1); // go to next tab
+			} else {
+				// TODO: show error!
+			}
 		},
 		onBackButtonClick: function(e) {
-			console.log('onBackButtonClick', e);
+			//console.log('onBackButtonClick', e);
 			
 			$app.gui.showTab(0);
 		},

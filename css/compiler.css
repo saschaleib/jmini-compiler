@@ -171,6 +171,10 @@
 							font-family: Consolas, "Lucida Console", "Courier New", monospace;
 							font-size-adjust: 0.5;
 						}
+						.msize {
+							font-style: italic;
+							font-size: smaller;
+						}
 					}
 				}
 			}
@@ -364,10 +368,12 @@
 		}
 		textarea {
 			width: 100%;
-			min-height: 12em;
+			min-height: 24em;
 			max-height: 64em;
 			resize: vertical;
 			white-space: pre;
+			text-wrap: wrap;
+			word-break: break-all;
 			margin-bottom: 1em;
 			padding: .25em .25em 1em .25em ;
 			background-color: #FFF;
