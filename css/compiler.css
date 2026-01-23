@@ -137,8 +137,9 @@
 						column-gap: .5em;
 						align-items: center;
 						white-space: nowrap;
-						padding: .25em 0;
 						font-weight: normal;
+						line-height: 1.6;
+						padding: .25em 0;
 						cursor: pointer;
 					}
 					&::before {

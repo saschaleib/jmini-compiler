@@ -6,8 +6,8 @@
  *
  * @author Sascha Leib <ad@hominem.info>
  *
- * @version 2.0.0
- * @date 2026-01-22
+ * @version 2.0.1
+ * @date 2026-01-23
  * @package jmini-compiler
  * @requires jMini Core
  */
@@ -32,14 +32,14 @@ $app.model = {
 			$app.gui.builder.makeTopicsList(result.topics);
 
 			// store the topics in the internal storage:
-			me._topics = result.topics;
+			me._private_.topics = result.topics;
 
 		})
 		.then ( () => {
 			
 			// load the items for each topic:
-			let toLoad = me._topics.length;
-			me._topics.forEach( topic => {
+			let toLoad = me._private_.topics.length;
+			me._private_.topics.forEach( topic => {
 				
 				JSON.load(baseUrl + topic.path + 'index.json')
 				.then( json => {
@@ -50,7 +50,7 @@ $app.model = {
 					toLoad -= 1;
 					if (toLoad <= 0) {
 						// initiate loading the source snippets:
-						me._loadSourceSnippets(baseUrl);
+						me._private_.loadSourceSnippets(baseUrl);
 					}
 				});
 			});
@@ -63,160 +63,11 @@ $app.model = {
 		});
 	},
 	
-	// internal data storage
-	// (array of topics):
-	_topics: [],
-	
-	// find an item by ID:
-	findItem: function(id) {
-		//console.log('$app.model.findItem("'+id+'")');
-		
-		// shortcut to make the code more readable:
-		const me = $app.model;
-
-		// search through all items:
-		// old-style for loops are fastest in this case!
-		let item = null;
-		for (let i = 0; i < me._topics.length; i++) {
-			for (let j = 0; j < me._topics[i]._items.length; j++) {
-				if (me._topics[i]._items[j].id === id) {
-					item = me._topics[i]._items[j];
-					break;
-				}
-			}
-			if (item) break;
-		}
-		return item;
-	},
-	
-	// find a topic by ID:
-	findTopic: function(id) {
-
-		// shortcuts to make the code more readable:
-		const topics = $app.model._topics;
-
-		// find the topic:
-		// old-style for loops are fastest in this case!
-		let topic = null;
-		for (let i = 0; i < topics.length; i++) {
-			if (topics[i].id == id) {
-				topic = topics[i];
-				break;
-			}
-		}
-		return topic;
-	},
-	
-	// check/uncheck item by ID:
-	checkItem: function(id, state) {
-		//console.log('$app.model.checkItem("'+id+'"',state,')');
-		
-		// find the item:
-		const item = $app.model.findItem(id);
-		if (item) {
-			item._checked = state;
-			item._cb.checked = state;
-		}
-	},
-
-	// check/uncheck an entire topic:
-	// 'topic' parameter can be an ID string, or a topic object:
-	checkTopic: function(topic, state) {
-		//console.log('$app.model.checkTopic("'+id+'"',state,')');
-
-		// shortcuts to make the code more readable:
-		const gui = $app.gui;
-
-		// if the topic is passed by ID, we first need to find the object:
-		if (typeof topic === 'string' || topic instanceof String) {
-			topic = $app.model.findTopic(topic);
-		}
-
-		if (topic) { // update checked status of all items:
-			topic._items.forEach( it => {
-				it._checked = state;
-				it._cb.checked = state;
-			});
-		} else {
-			console.error('TOPIC NOT FOUND:');
-		}			
-	},
-	
-	// recalculate all topic sizes:
-	recalculateAllSizes: function() {
-		console.log('$app.model.recalculateAllSizes()');
-
-		// are we looking for minified sizes or full-size ones?
-		const minified = $app.gui.options.getMinifiedStatus();
-		
-		// total toolbox size:
-		let totalSize = 0; // total file size of the selection
-		let totalSelected = 0; // number of topics that contain selected items
-		
-		// loop over all topics:
-		$app.model._topics.forEach( topic => {
-			
-			// find which items are checked:
-			let topicSize = 0;
-			let topicSelected = 0;
-			topic._items.forEach( it => {
-				
-				// update the item size field:
-				const itemSize = ( minified ? it._srcmin.length || 0 : it._src.length || 0 );
-				it._sf.textContent = itemSize.toBytesString();
-
-				// calculate total sizes (iff selected)
-				if (it._checked && (it._srcmin || it._src)) {
-					topicSize += itemSize;
-					totalSize += itemSize;
-					topicSelected += 1;
-				}
-			});
-			
-			// update the topic select box:
-			let topicState = Math.sign(topicSelected); // 0 or 1
-			if ( topicState > 0 && topicSelected < topic._items.length) {
-				topicState = -1; // mixed state!
-			}
-			
-			// count towards the total checkbox?
-			totalSelected += ( topicState > 0 ? 1 : 0 ); // also mixed items count as 1
-
-			// update the size field for the topic:
-			$app.gui.updater.updateTopicState(topic, topicSize, topicState);
-		});
-		
-		// determine the total checkbox state:
-		let totalState = Math.sign(totalSelected); // 0 or 1
-		if ( totalState > 0 && totalSelected < $app.model._topics.length) {
-			totalState = -1; // mixed state!
-		}
-
-		// display the total size:
-		$app.gui.updater.updateTotalState(totalSize, totalState);
-	},
-	
-	// check/uncheck *all* items:
-	checkAll: function(state) {
-		// console.log('$app.model.checkAll(',state,')');
-
-		$app.model._topics.forEach( topic => {
-			$app.model.checkTopic(topic, state);
-			
-			topic._checked = state;
-			topic._cb.checked = state;
-			
-		});
-		
-		// recalculate the selected sizes:
-		$app.model.recalculateAllSizes()
-	},
-
 	// compile the library and put the code into the source field:
 	compile: function() {
 				
 		// get the user settings as an object:
-		const opt = $app.gui.options.getUserOptions();
+		const opt = $app.gui.options.get();
 		
 		// always start with a "use strict" directive:
 		let code = "'use strict';";
@@ -233,7 +84,7 @@ $app.model = {
 		}
 		
 		/* loop over all topics and items: */
-		$app.model._topics.forEach( topic => {
+		$app.model._private_.topics.forEach( topic => {
 			topic._items.forEach( it => {
 				
 				if (it._checked && (it._src ||it._srcmin)) {
@@ -247,96 +98,262 @@ $app.model = {
 		
 	},
 
-	// load all the source snippets (internal)
-	_loadSourceSnippets: function(baseUrl) {
-		//console.log('$app.model._loadSourceSnippets('+baseUrl+')');
+	// methods related to the topics data:
+	topic: {
 
-		// shortcut to make the code more readable:
-		const me = $app.model;
-				
-		// lock, and get the status of the minified button:
-		$app.gui.options.lockMinifiedCB(true);
-		const minified = $app.gui.options.getMinifiedStatus();
+		// find a topic by ID:
+		find: function(id) {
 
-		// count the total snippet files to be loaded:
-		me._topics.forEach( topic => {
-			me.__totalSnippetLoads += topic._items.length * 2;
-		});
+			// shortcuts to make the code more readable:
+			const topics = $app.model._private_.topics;
 
-		// load all the minified snippets first:
-		me._topics.forEach( topic => {
-			topic._items.forEach( it => {
-				me.__loadSnippet(baseUrl, topic, it, true, minified, me.__loadSnippetCallback);
-			});
-		});
-
-		// now do the same for all the non-minified ones:
-		me._topics.forEach( topic => {
-			topic._items.forEach( it => {
-				me.__loadSnippet(baseUrl, topic, it, false, !minified, me.__loadSnippetCallback);
-			});
-		});
-	},
+			// find the topic:
+			// old-style for loops are fastest in this case!
+			let topic = null;
+			for (let i = 0; i < topics.length; i++) {
+				if (topics[i].id == id) {
+					topic = topics[i];
+					break;
+				}
+			}
+			return topic;
+		},
 	
-	// load one specific snippet (private)
-	__loadSnippet: async function(baseUrl, topic, item, minified, show, callback) {
-		//console.log('$app.model.__loadSnippet()', baseUrl, topic, item, minified);
+		// check/uncheck an entire topic:
+		// 'topic' parameter can be an ID string, or a topic object:
+		check: function(topic, state) {
+			//console.log('$app.model.topic.check("'+id+'"',state,')');
 
-		// shortcuts to make the code more readable:
-		const gui = $app.gui;
+			// shortcuts to make the code more readable:
+			const gui = $app.gui;
 
-		// Load the topic file:
-		fetch(baseUrl + topic.path + item.file + ( minified ? '.min' : '' ) + '.js')
-		.then (response => {
-			if (response.ok) {
-				return response.text();
+			// if the topic is passed by ID, we first need to find the object:
+			if (typeof topic === 'string' || topic instanceof String) {
+				topic = $app.model.topic.find(topic);
+			}
+
+			if (topic) { // update checked status of all items:
+				topic._items.forEach( it => {
+					it._checked = state;
+					it._cb.checked = state;
+				});
 			} else {
-				gui.error.show('incomplete');
-				console.error(`HTTP ${response.status}: ${response.statusText}`);
-				return null;
-			}
-		})
-		.then( txt => {
-			
-			// update the item:
-			if (minified) {
-				item._srcmin = txt;
-			} else {
-				item._src = txt;
-			}
-			
-			// update the UI:
-			if (!txt) { // an error occured
-				item._checked = false;
-				gui.updater.setItemError(item);
-			} else if (show) {
-				item._sf.textContent = txt.length.toBytesString();
-			}
-		})
-		.catch( error => {
-			gui.error.show('incomplete');
-			console.error(error.toString());
-		})
-		.finally( () => {
-			if (callback) callback(); // call the callback.
-		});
-	},
-	
-	// total number of snippets to be loaded (private)
-	__totalSnippetLoads: 0,
-	
-	// callback after every snippet was loaded (private)
-	__loadSnippetCallback: function() {
-		
-		// shortcuts to make the code more readable:
-		const gui = $app.gui;
-
-		$app.model.__totalSnippetLoads--; // countdown
-		
-		// finished? go interactive
-		if ($app.model.__totalSnippetLoads <= 0) {
-			// console.info("Loading finished, entering interactive mode:");
-			gui.interaction.start();
+				console.error('TOPIC NOT FOUND:');
+			}			
 		}
+	},
+	
+	// methods related to the function items:
+	item: {
+
+		// find an item by ID:
+		find: function(id) {
+			//console.log('$app.model.item.find("'+id+'")');
+			
+			// shortcut to make the code more readable:
+			const _private_ = $app.model._private_;
+
+			// search through all items:
+			// old-style for loops are fastest in this case!
+			let item = null;
+			for (let i = 0; i < _private_.topics.length; i++) {
+				for (let j = 0; j < _private_.topics[i]._items.length; j++) {
+					if (_private_.topics[i]._items[j].id === id) {
+						item = _private_.topics[i]._items[j];
+						break;
+					}
+				}
+				if (item) break;
+			}
+			return item;
+		},
+
+		// check/uncheck item by ID:
+		check: function(id, state) {
+			//console.log('$app.model.item.check("'+id+'"',state,')');
+			
+			// find the item:
+			const item = $app.model.item.find(id);
+			if (item) {
+				item._checked = state;
+				item._cb.checked = state;
+			}
+		},
+	},
+	
+	// methods related to the global list as a whole:
+	global: {
+		
+		// recalculate all topic sizes:
+		recalculate: function() {
+			console.log('$app.model.global.recalculate()');
+
+			// get the user options:
+			const opt = $app.gui.options.get();
+			
+			// total toolbox size:
+			let totalSize = 0; // total file size of the selection
+			let totalSelected = 0; // number of topics that contain selected items
+			
+			// loop over all topics:
+			$app.model._private_.topics.forEach( topic => {
+				
+				// find which items are checked:
+				let topicSize = 0;
+				let topicSelected = 0;
+				topic._items.forEach( it => {
+					
+					// update the item size field:
+					const itemSize = ( opt.minify ? it._srcmin.length || 0 : it._src.length || 0 );
+					it._sf.textContent = itemSize.toBytesString();
+
+					// calculate total sizes (iff selected)
+					if (it._checked && (it._srcmin || it._src)) {
+						topicSize += itemSize;
+						totalSize += itemSize;
+						topicSelected += 1;
+					}
+				});
+				
+				// update the topic select box:
+				let topicState = Math.sign(topicSelected); // 0 or 1
+				if ( topicState > 0 && topicSelected < topic._items.length) {
+					topicState = -1; // mixed state!
+				}
+				
+				// count towards the total checkbox?
+				totalSelected += ( topicState > 0 ? 1 : 0 ); // also mixed items count as 1
+
+				// update the size field for the topic:
+				$app.gui.updater.updateTopicState(topic, topicSize, topicState);
+			});
+			
+			// determine the total checkbox state:
+			let totalState = Math.sign(totalSelected); // 0 or 1
+			if ( totalState > 0 && totalSelected < $app.model._private_.topics.length) {
+				totalState = -1; // mixed state!
+			}
+
+			// display the total size:
+			$app.gui.updater.updateTotalState(totalSize, totalState);
+		},
+		
+		// check/uncheck *all* items:
+		check: function(state) {
+			// console.log('$app.model.global.check(',state,')');
+
+			$app.model._private_.topics.forEach( topic => {
+				$app.model.topic.check(topic, state);
+				
+				topic._checked = state;
+				topic._cb.checked = state;
+				
+			});
+			
+			// recalculate the selected sizes:
+			$app.model.global.recalculate()
+		}
+	},
+
+	// private properties and functions:
+	_private_: {
+		
+		// internal data storage
+		// (array of topics):
+		topics: [],
+
+		// load all the source snippets (private)
+		loadSourceSnippets: function(baseUrl) {
+			//console.log('$app.model._private_._loadSourceSnippets('+baseUrl+')');
+
+			// shortcuts to make the code more readable:
+			const me = $app.model;
+			const _private_ = me._private_;
+					
+			// lock, and get the status of the minified button:
+			$app.gui.options.lock('minify', true);
+			const opt = $app.gui.options.get();
+
+			// count the total snippet files to be loaded:
+			_private_.topics.forEach( topic => {
+				_private_.totalSnippetLoads += topic._items.length * 2;
+			});
+
+			// load all the minified snippets first:
+			_private_.topics.forEach( topic => {
+				topic._items.forEach( it => {
+					_private_.loadSnippet(baseUrl, topic, it, true, opt.minify, _private_.loadSnippetCallback);
+				});
+			});
+
+			// now do the same for all the non-minified ones:
+			_private_.topics.forEach( topic => {
+				topic._items.forEach( it => {
+					_private_.loadSnippet(baseUrl, topic, it, false, !opt.minify, _private_.loadSnippetCallback);
+				});
+			});
+		},
+
+		// load one specific snippet (private)
+		loadSnippet: async function(baseUrl, topic, item, minified, show, callback) {
+			//console.log('$app.model.__loadSnippet()', baseUrl, topic, item, minified);
+
+			// shortcuts to make the code more readable:
+			const gui = $app.gui;
+
+			// Load the topic file:
+			fetch(baseUrl + topic.path + item.file + ( minified ? '.min' : '' ) + '.js')
+			.then (response => {
+				if (response.ok) {
+					return response.text();
+				} else {
+					gui.error.show('incomplete');
+					console.error(`HTTP ${response.status}: ${response.statusText}`);
+					return null;
+				}
+			})
+			.then( txt => {
+				
+				// update the item:
+				if (minified) {
+					item._srcmin = txt;
+				} else {
+					item._src = txt;
+				}
+				
+				// update the UI:
+				if (!txt) { // an error occured
+					item._checked = false;
+					gui.updater.setItemError(item);
+				} else if (show) {
+					item._sf.textContent = txt.length.toBytesString();
+				}
+			})
+			.catch( error => {
+				gui.error.show('incomplete');
+				console.error(error.toString());
+			})
+			.finally( () => {
+				if (callback) callback(); // call the callback.
+			});
+		},
+		
+		// total number of snippets to be loaded (private)
+		totalSnippetLoads: 0,
+		
+		// callback after every snippet was loaded (private)
+		loadSnippetCallback: function() {
+			
+			// shortcut to _private_ namespace:
+			const _private_ = $app.model._private_;
+
+			_private_.totalSnippetLoads--; // countdown
+			
+			// finished? go interactive
+			if (_private_.totalSnippetLoads <= 0) {
+				// console.info("Loading finished, entering interactive mode:");
+				$app.gui.interaction.start();
+			}
+		},
 	}
 }

@@ -6,15 +6,16 @@
  *
  * @author Sascha Leib <ad@hominem.info>
  *
- * @version 2.0.0
- * @date 2026-01-22
+ * @version 2.0.1
+ * @date 2026-01-23
  * @package jmini-compiler
  * @requires jMini Core
  */
 
 $app.gui = {
 	
-	// prepare the UI pre-initialisation:
+	// prepare the UI pre-initialisation
+	// (called by $app.init() )
 	init: function(root) {
 		//console.log('$app.gui.init(',root,')');
 
@@ -22,7 +23,7 @@ $app.gui = {
 		const builder = $app.gui.builder;
 		
 		// create the selection tab:
-		$app.gui._ref.tabs[0] = root.appendNew('div', { 'id': 'jmc__tab1'},
+		$app.gui._ref.pages[0] = root.appendNew('div', { 'id': 'jmc__tab1'},
 		[
 			builder.makeSelHeader(),
 			builder.makeErrorMessages(),
@@ -30,13 +31,13 @@ $app.gui = {
 			builder.makeSelFooter()
 		]);
 
-		// create the target tab tab:
-		$app.gui._ref.tabs[1] = root.appendNew('div', {
+		// create the target page:
+		$app.gui._ref.pages[1] = root.appendNew('div', {
 			'id': 'jmc__tab2',
 			'hidden': 'hidden'
 		}, [
 			builder.makeCodeHeader(),
-			builder.makeCodeField()
+			builder.makeCodeField() 
 		]);
 	},
 	
@@ -69,63 +70,37 @@ $app.gui = {
 			$app.gui._ref.total.classList.remove('loading');
 			$app.gui._ref.total.textContent = '';
 		}
-
 	},
 	
-	// change the tab interface:
-	showTab: function(num) {
-		//console.log('$app.gui.showTab(',num,')');
+	// change the interface page:
+	showPage: function(num) {
+		//console.log('$app.gui.showPage(',num,')');
 		
-		$app.gui._ref.tabs.forEach( (tab, i) => {
-			tab.hidden = (i !== num);
+		$app.gui._ref.pages.forEach( (pg, i) => {
+			pg.hidden = (i !== num);
 		});
 	},
 	
-	// functions for showing errors
+	// functions for showing error messages
 	error: {
-		show: function(type) {
+		show: function(type, hide = false) {
 			//console.log('$app.gui.error.show(',type,')');
 
-			switch (type) {
-				case 'network':
-					$app.gui._ref.error.network.hidden = false;
-					break;
-				case 'incomplete':
-					$app.gui._ref.error.incomplete.hidden = false;
-					break;
-				default:
-					console.error("Unknown error type:", type);
+			try {
+				const mBox = $app.gui._ref.error[type];
+				mBox.hidden = hide;
+			} catch(err) {
+				console.error(`Could not show error message #${item}:`, err.toString());
 			}
+
 		}
 	},
 	
 	// functions related to the options:
 	options: {
 		
-		// lock/unlock the Minify checkbox:
-		lockMinifiedCB: function(lock) {
-			
-			// shortcuts to make the code more readable:
-			const minifyCB = $app.gui._ref.options.minify;
-			
-			if (minifyCB) {
-				minifyCB.disabled = lock;
-			}
-		},
-		
-		// returns the current status of the Minify button:
-		getMinifiedStatus: function() {
-			// shortcuts to make the code more readable:
-			const minifyCB = $app.gui._ref.options.minify;
-			
-			if (minifyCB) {
-				return minifyCB.checked;
-			}
-			return true; // in case not available: use minified!
-		},
-		
 		// return a settings object representing the user options settings:
-		getUserOptions: function() {
+		get: function() {
 			
 			// shortcuts to make the code more readable:
 			const ref = $app.gui._ref;
@@ -137,16 +112,27 @@ $app.gui = {
 			}
 			
 			return r;
+		},
+
+		// lock/unlock an option checkbox
+		lock: function(item, lock) {
+			
+			try {
+				const cb = $app.gui._ref.options[item];
+				cb.disabled = lock;
+			} catch(err) {
+				console.error(`Could not lock checkbox “${item}”:`, err.toString());
+			}
 		}
 	},
 	
-	/* references to specific elements for easy access: */
+	/* references to created elements for easy access: */
 	_ref: {
 		total: null,
 		totalCb: null,
 		compileBtn: null,
 		topicList: null,
-		tabs: [null, null],
+		pages: [null, null],
 		options: {
 			minify: null,
 			license: null,
@@ -180,7 +166,7 @@ $app.gui = {
 				
 				HTMLElement.new('label', {
 					'for': 'jmc__globalcb'
-				}, "jMini Toolbox"),
+				}, "jMini"),
 				
 				$app.gui._ref.total
 			]);
@@ -451,7 +437,7 @@ $app.gui = {
 			//console.log('onGlobalCheckboxChange', e);
 			
 			// check/uncheck all in model:
-			$app.model.checkAll(e.target.checked);
+			$app.model.global.check(e.target.checked);
 
 		},
 		onCompileButtonClick: function(e) {
@@ -461,7 +447,7 @@ $app.gui = {
 			const code = $app.model.compile();
 			if (code) {
 				$app.gui._ref.sourceField.value = code;
-				$app.gui.showTab(1); // go to next tab
+				$app.gui.showPage(1); // go to next tab
 			} else {
 				// TODO: show error!
 			}
@@ -469,7 +455,7 @@ $app.gui = {
 		onBackButtonClick: function(e) {
 			//console.log('onBackButtonClick', e);
 			
-			$app.gui.showTab(0);
+			$app.gui.showPage(0);
 		},
 		onCopyButtonClick: function(e) {
 			// console.log('onCopyButtonClick', e);
@@ -488,10 +474,10 @@ $app.gui = {
 			const state = e.target.checked;
 			
 			// select all sub-items:
-			$app.model.checkTopic( id, state );
+			$app.model.topic.check( id, state );
 			
 			// update all sizes:
-			$app.model.recalculateAllSizes();
+			$app.model.global.recalculate();
 	
 		},
 		onItemCheckBoxClick: function(e) {
@@ -502,15 +488,15 @@ $app.gui = {
 			const state = e.target.checked;
 			
 			// select all sub-items:
-			$app.model.checkItem( id, state );
+			$app.model.item.check( id, state );
 			
 			// update all sizes:
-			$app.model.recalculateAllSizes();
+			$app.model.global.recalculate();
 		},
 		onMinifyOptionChange: function(e) {
 			// console.log('onMinifyOptionChange', e);
 		
-			$app.model.recalculateAllSizes();
+			$app.model.global.recalculate();
 		},
 		onReloadButtonClicked: function(e) {
 			// console.log('onReloadButtonClicked', e);

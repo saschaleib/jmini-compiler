@@ -25,7 +25,8 @@ $p.dyn.jMini = {
 
 /* app root item */
 const $app = {
-	version: 2.0,
+	
+	version: '2.0.1',
 	
 	// The init is registered as action callback, i.e. this will be called
 	// when a JSON snippet with the appropriate 'action' is found in the page.
