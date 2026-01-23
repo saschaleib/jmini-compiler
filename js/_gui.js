@@ -405,17 +405,17 @@ $app.gui = {
 		},
 
 		// update the total state:
-		updateTotalState: function(size, state) {
-			//console.log('updateTotalState()', size, state);
+		updateTotalState: function(size, state, mixed) {
+			console.log('updateTotalState()', size, state, mixed);
 			
 			// update the total size:
 			$app.gui._ref.total.textContent = size.toBytesString(1, 'en', {0: '—'});
 			
 			// checked state for both, all checked, or mixed:
-			$app.gui._ref.totalCb.checked = ( state > 0 );
+			$app.gui._ref.totalCb.checked = ( state > 0 && !mixed );
 			
 			// indeterminate state for mixed only:
-			$app.gui._ref.totalCb.indeterminate = ( state < 0 );
+			$app.gui._ref.totalCb.indeterminate = ( state < 0 || mixed );
 		},
 
 		// sets an item to an error state:

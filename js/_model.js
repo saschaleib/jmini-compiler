@@ -194,20 +194,21 @@ $app.model = {
 			// total toolbox size:
 			let totalSize = 0; // total file size of the selection
 			let totalSelected = 0; // number of topics that contain selected items
+			let hasMixed = false; // are there any mixed items in the list?
 			
 			// loop over all topics:
 			$app.model._private_.topics.forEach( topic => {
 				
 				// find which items are checked:
-				let topicSize = 0;
-				let topicSelected = 0;
+				let topicSize = 0; // how many bytes in the topic?
+				let topicSelected = 0; // how many items in the topic are selected?
 				topic._items.forEach( it => {
 					
 					// update the item size field:
 					const itemSize = ( opt.minify ? it._srcmin.length || 0 : it._src.length || 0 );
 					it._sf.textContent = itemSize.toBytesString();
 
-					// calculate total sizes (iff selected)
+					// calculate total sizes (if selected)
 					if (it._checked && (it._srcmin || it._src)) {
 						topicSize += itemSize;
 						totalSize += itemSize;
@@ -219,10 +220,11 @@ $app.model = {
 				let topicState = Math.sign(topicSelected); // 0 or 1
 				if ( topicState > 0 && topicSelected < topic._items.length) {
 					topicState = -1; // mixed state!
+					hasMixed = true; // flag the mixed state!
 				}
 				
 				// count towards the total checkbox?
-				totalSelected += ( topicState > 0 ? 1 : 0 ); // also mixed items count as 1
+				totalSelected += ( topicState > 0 ? 1 : 0 ); // only fully selected items count here!
 
 				// update the size field for the topic:
 				$app.gui.updater.updateTopicState(topic, topicSize, topicState);
@@ -230,12 +232,13 @@ $app.model = {
 			
 			// determine the total checkbox state:
 			let totalState = Math.sign(totalSelected); // 0 or 1
+						
 			if ( totalState > 0 && totalSelected < $app.model._private_.topics.length) {
 				totalState = -1; // mixed state!
 			}
 
 			// display the total size:
-			$app.gui.updater.updateTotalState(totalSize, totalState);
+			$app.gui.updater.updateTotalState(totalSize, totalState, hasMixed);
 		},
 		
 		// check/uncheck *all* items:
