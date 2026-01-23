@@ -134,8 +134,7 @@ $app.model = {
 
 			if (topic) { // update checked status of all items:
 				topic._items.forEach( it => {
-					it._checked = state;
-					it._cb.checked = state;
+					$app.model.item.check(it, state);
 				});
 			} else {
 				console.error('TOPIC NOT FOUND:');
@@ -169,11 +168,15 @@ $app.model = {
 		},
 
 		// check/uncheck item by ID:
-		check: function(id, state) {
+		// 'item' parameter can be an ID string, or an item object:
+		check: function(item, state) {
 			//console.log('$app.model.item.check("'+id+'"',state,')');
 			
-			// find the item:
-			const item = $app.model.item.find(id);
+			// if the item is passed by ID, we first need to find the object:
+			if (typeof item === 'string' || item instanceof String) {
+				item = $app.model.item.find(item);
+			}
+
 			if (item) {
 				item._checked = state;
 				item._cb.checked = state;
@@ -187,7 +190,7 @@ $app.model = {
 		
 		// select all dependencies of an item
 		selectDependencies: function(item) {
-			console.log('$app.model.global.selectDependencies(',item,')');
+			//console.log('$app.model.global.selectDependencies(',item,')');
 			
 			const me = $app.model.item;
 			
