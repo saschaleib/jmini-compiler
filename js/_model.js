@@ -11,10 +11,12 @@
  * @package jmini-compiler
  * @requires jMini Core
  */
- 
+
+// extend the $app object by a new "model" sub-object:
 $app.model = {
 
-	// initialise the model (load topics file from server):
+	// init is called from $app.init
+	// parameter is the base Url to load the 
 	init: function(baseUrl) {
 		//console.log('$app.model.load("'+baseUrl+'")');
 
@@ -30,14 +32,14 @@ $app.model = {
 			$app.gui.builder.makeTopicsList(result.topics);
 
 			// store the topics in the internal storage:
-			me._data = result.topics;
+			me._topics = result.topics;
 
 		})
 		.then ( () => {
 			
 			// load the items for each topic:
-			let toLoad = me._data.length;
-			me._data.forEach( topic => {
+			let toLoad = me._topics.length;
+			me._topics.forEach( topic => {
 				
 				JSON.load(baseUrl + topic.path + 'index.json')
 				.then( json => {
@@ -63,7 +65,7 @@ $app.model = {
 	
 	// internal data storage
 	// (array of topics):
-	_data: [],
+	_topics: [],
 	
 	// find an item by ID:
 	findItem: function(id) {
@@ -75,10 +77,10 @@ $app.model = {
 		// search through all items:
 		// old-style for loops are fastest in this case!
 		let item = null;
-		for (let i = 0; i < me._data.length; i++) {
-			for (let j = 0; j < me._data[i]._items.length; j++) {
-				if (me._data[i]._items[j].id === id) {
-					item = me._data[i]._items[j];
+		for (let i = 0; i < me._topics.length; i++) {
+			for (let j = 0; j < me._topics[i]._items.length; j++) {
+				if (me._topics[i]._items[j].id === id) {
+					item = me._topics[i]._items[j];
 					break;
 				}
 			}
@@ -91,14 +93,14 @@ $app.model = {
 	findTopic: function(id) {
 
 		// shortcuts to make the code more readable:
-		const me = $app.model;
+		const topics = $app.model._topics;
 
 		// find the topic:
 		// old-style for loops are fastest in this case!
 		let topic = null;
-		for (let i = 0; i < me._data.length; i++) {
-			if (me._data[i].id == id) {
-				topic = me._data[i];
+		for (let i = 0; i < topics.length; i++) {
+			if (topics[i].id == id) {
+				topic = topics[i];
 				break;
 			}
 		}
@@ -142,7 +144,7 @@ $app.model = {
 	
 	// recalculate all topic sizes:
 	recalculateAllSizes: function() {
-		// console.log('$app.model.recalculateAllSizes()');
+		console.log('$app.model.recalculateAllSizes()');
 
 		// are we looking for minified sizes or full-size ones?
 		const minified = $app.gui.options.getMinifiedStatus();
@@ -152,7 +154,7 @@ $app.model = {
 		let totalSelected = 0; // number of topics that contain selected items
 		
 		// loop over all topics:
-		$app.model._data.forEach( topic => {
+		$app.model._topics.forEach( topic => {
 			
 			// find which items are checked:
 			let topicSize = 0;
@@ -186,7 +188,7 @@ $app.model = {
 		
 		// determine the total checkbox state:
 		let totalState = Math.sign(totalSelected); // 0 or 1
-		if ( totalState > 0 && totalSelected < $app.model._data.length) {
+		if ( totalState > 0 && totalSelected < $app.model._topics.length) {
 			totalState = -1; // mixed state!
 		}
 
@@ -198,7 +200,7 @@ $app.model = {
 	checkAll: function(state) {
 		// console.log('$app.model.checkAll(',state,')');
 
-		$app.model._data.forEach( topic => {
+		$app.model._topics.forEach( topic => {
 			$app.model.checkTopic(topic, state);
 			
 			topic._checked = state;
@@ -231,7 +233,7 @@ $app.model = {
 		}
 		
 		/* loop over all topics and items: */
-		$app.model._data.forEach( topic => {
+		$app.model._topics.forEach( topic => {
 			topic._items.forEach( it => {
 				
 				if (it._checked && (it._src ||it._srcmin)) {
@@ -257,19 +259,19 @@ $app.model = {
 		const minified = $app.gui.options.getMinifiedStatus();
 
 		// count the total snippet files to be loaded:
-		me._data.forEach( topic => {
+		me._topics.forEach( topic => {
 			me.__totalSnippetLoads += topic._items.length * 2;
 		});
 
 		// load all the minified snippets first:
-		me._data.forEach( topic => {
+		me._topics.forEach( topic => {
 			topic._items.forEach( it => {
 				me.__loadSnippet(baseUrl, topic, it, true, minified, me.__loadSnippetCallback);
 			});
 		});
 
 		// now do the same for all the non-minified ones:
-		me._data.forEach( topic => {
+		me._topics.forEach( topic => {
 			topic._items.forEach( it => {
 				me.__loadSnippet(baseUrl, topic, it, false, !minified, me.__loadSnippetCallback);
 			});

@@ -495,7 +495,7 @@ $app.gui = {
 	
 		},
 		onItemCheckBoxClick: function(e) {
-			// console.log('onItemCheckBoxClick', e);
+			//console.log('onItemCheckBoxClick', e);
 
 			// get the id and state:
 			const id = e.target.getAttribute('data-mid');
