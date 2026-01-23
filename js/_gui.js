@@ -406,7 +406,7 @@ $app.gui = {
 
 		// update the total state:
 		updateTotalState: function(size, state, mixed) {
-			console.log('updateTotalState()', size, state, mixed);
+			//console.log('updateTotalState()', size, state, mixed);
 			
 			// update the total size:
 			$app.gui._ref.total.textContent = size.toBytesString(1, 'en', {0: '—'});

@@ -177,8 +177,27 @@ $app.model = {
 			if (item) {
 				item._checked = state;
 				item._cb.checked = state;
+				
+				// also select dependent items, if applicable:
+				if (state) {
+					$app.model.item.selectDependencies(item);
+				}
 			}
 		},
+		
+		// select all dependencies of an item
+		selectDependencies: function(item) {
+			console.log('$app.model.global.selectDependencies(',item,')');
+			
+			const me = $app.model.item;
+			
+			if (item.requires && item.requires.length > 0) {
+				item.requires.forEach( reqId => {
+					me.check(reqId, true);
+				});
+			}
+			
+		}
 	},
 	
 	// methods related to the global list as a whole:
@@ -186,7 +205,7 @@ $app.model = {
 		
 		// recalculate all topic sizes:
 		recalculate: function() {
-			console.log('$app.model.global.recalculate()');
+			//console.log('$app.model.global.recalculate()');
 
 			// get the user options:
 			const opt = $app.gui.options.get();
