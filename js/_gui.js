@@ -14,6 +14,9 @@
 
 $app.gui = {
 	
+	// base URL of the documentation site:
+	_baseDocUrl: 'https://jmini.nuropa.eu/wiki/',
+	
 	// prepare the UI pre-initialisation
 	// (called by $app.init() )
 	init: function(root) {
@@ -327,7 +330,7 @@ $app.gui = {
 					'data-tid': topic.id,
 					'id': 'jmc__topiccb_' + topic.id
 				}).on('click', $app.gui._cb.onTopicCheckBoxClick);
-				
+
 				// now the size field:
 				topic._sf = HTMLElement.new('span', {
 					'class': 'tsize'
@@ -345,7 +348,13 @@ $app.gui = {
 						HTMLElement.new('span', {
 							'class': 'tdesc'
 						}, topic.desc),
-						topic._sf
+						topic._sf,
+						HTMLElement.new('a', { // more info
+						'href': $app.gui._baseDocUrl + topic.info,
+						'target': '_blank',
+						'class': 'info',
+						'title': "Documentation"
+					}, "Info")
 					])
 				);
 			});
@@ -368,7 +377,7 @@ $app.gui = {
 					'data-mid': it.id,
 					'id': 'jmc__funcb_' + it.id
 				}).on('click', $app.gui._cb.onItemCheckBoxClick);
-			
+
 				// now the size field:
 				it._sf = HTMLElement.new('span', {
 					'class': 'msize'
@@ -383,7 +392,14 @@ $app.gui = {
 					HTMLElement.new('span', {
 						'class': 'mdesc'
 					}, it.desc),
-					it._sf
+					it._sf,
+					HTMLElement.new('a', { // more info
+						'href': $app.gui._baseDocUrl + it.moreinfo,
+						'target': '_blank',
+						'class': 'info',
+						'title': "Documentation"
+					}, "Info")
+
 				]);
 			});
 			

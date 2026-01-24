@@ -10,7 +10,6 @@
 		max-width: 60em;
 		margin: .5em auto;
 		font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-		font-size: smaller;
 		isolation: isolate;
 	}
 	.sr-only {
@@ -133,7 +132,7 @@
 				summary {
 					& {
 						display: grid;
-						grid-template-columns: 1.7em min-content min-content auto max-content;
+						grid-template-columns: 1.7em min-content min-content auto max-content 1.25em;
 						column-gap: .5em;
 						align-items: center;
 						white-space: nowrap;
@@ -141,6 +140,9 @@
 						line-height: 1.6;
 						padding: .25em 0;
 						cursor: pointer;
+					}
+					&:hover {
+						background-color: #F4F7F9;
 					}
 					&::before {
 						content: '';
@@ -151,6 +153,21 @@
 					}
 					label {
 						font-weight: 600;
+						cursor: pointer;
+					}
+					a.info {
+						& {
+							display: inline-block;
+							height: 1.2em; width: 1.2em;
+							overflow: hidden;
+						}
+						&::before {
+							content: '';
+							display: inline-block;
+							width: 1.2em; height: 1.2em;
+							background: transparent url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M11.5,3C16.75,3 21,7.25 21,12.5C21,17.75 16.75,22 11.5,22C6.25,22 2,17.75 2,12.5C2,7.25 6.25,3 11.5,3M11.5,4C6.81,4 3,7.81 3,12.5C3,17.19 6.81,21 11.5,21C16.19,21 20,17.19 20,12.5C20,7.81 16.19,4 11.5,4M11,8V10H12V8H11M11,12V17H12V12H11Z' style='fill:%230077D4'/%3E%3C/svg%3E") center no-repeat;
+							margin-right: 1em;
+						}
 					}
 				}
 				&[open] summary::before {
@@ -164,11 +181,15 @@
 					li {
 						& {
 							display: grid;
-							grid-template-columns: min-content min-content auto min-content;
+							grid-template-columns: min-content min-content auto min-content 1.25em;
 							column-gap: .5em;
 							align-items: center;
 							white-space: nowrap;
+							line-height: 1.5;
 							margin: .25em 0 .25em 3.7em;
+						}
+						&:hover {
+							background-color: #EFEFEF;
 						}
 						&.error {
 							color: #A4000F;
@@ -176,6 +197,21 @@
 						label {
 							font-family: Consolas, "Lucida Console", "Courier New", monospace;
 							font-size-adjust: 0.5;
+							cursor: pointer;
+						}
+						a.info {
+							& {
+								display: inline-block;
+								height: 1.2em; width: 1.2em;
+								overflow: hidden;
+							}
+							&::before {
+								content: '';
+								display: inline-block;
+								width: 1.2em; height: 1.2em;
+								background: transparent url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M11.5,3C16.75,3 21,7.25 21,12.5C21,17.75 16.75,22 11.5,22C6.25,22 2,17.75 2,12.5C2,7.25 6.25,3 11.5,3M11.5,4C6.81,4 3,7.81 3,12.5C3,17.19 6.81,21 11.5,21C16.19,21 20,17.19 20,12.5C20,7.81 16.19,4 11.5,4M11,8V10H12V8H11M11,12V17H12V12H11Z' style='fill:%230077D4'/%3E%3C/svg%3E") right no-repeat;
+								margin-right: 1em;
+							}
 						}
 						.msize {
 							font-style: italic;
