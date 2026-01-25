@@ -132,7 +132,7 @@
 				summary {
 					& {
 						display: grid;
-						grid-template-columns: 1.7em min-content min-content auto max-content 1.25em;
+						grid-template-columns: min-content min-content min-content auto max-content 1.25em;
 						column-gap: .5em;
 						align-items: center;
 						white-space: nowrap;
@@ -155,7 +155,7 @@
 						font-weight: 600;
 						cursor: pointer;
 					}
-					a.info {
+					a.tinfo {
 						& {
 							display: inline-block;
 							height: 1.2em; width: 1.2em;
@@ -199,7 +199,7 @@
 							font-size-adjust: 0.5;
 							cursor: pointer;
 						}
-						a.info {
+						a.minfo {
 							& {
 								display: inline-block;
 								height: 1.2em; width: 1.2em;
@@ -424,6 +424,47 @@
 			scrollbar-color: #aaa #fbfaf9;
 			border: #CCC solid 1px;
 			box-shadow: inset .125em .125em .25em rgba(204, 204, 204, 0.6);
+		}
+	}
+}
+
+@media (max-width: 450px) {
+
+	#jMini-Compiler {
+		#jmc__tab1 {
+			& > header {
+				padding: .25em .75em;
+				column-gap: .5em;
+			}
+			& > div.content {
+				& {
+					padding: .25em .5em;
+				}
+				span.tdesc, & span.mdesc {
+					width: 0;
+					overflow: hidden;
+				}
+				details {
+					summary {
+						& {
+							column-gap: .25em;
+						}
+						&::before {
+							width: 1.1em;
+						}
+					}
+					ul li {
+						& {
+							grid-template-columns: min-content min-content auto min-content;
+							column-gap: .25em;
+							margin: .25em 0 .25em 2.25em;
+						}
+						a.minfo, span.msize {
+							display: none;
+						}
+					}
+				}
+			}
 		}
 	}
 }

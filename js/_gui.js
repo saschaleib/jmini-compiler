@@ -352,7 +352,7 @@ $app.gui = {
 						HTMLElement.new('a', { // more info
 						'href': $app.gui._baseDocUrl + topic.info,
 						'target': '_blank',
-						'class': 'info',
+						'class': 'tinfo',
 						'title': "Documentation"
 					}, "Info")
 					])
@@ -396,7 +396,7 @@ $app.gui = {
 					HTMLElement.new('a', { // more info
 						'href': $app.gui._baseDocUrl + it.moreinfo,
 						'target': '_blank',
-						'class': 'info',
+						'class': 'minfo',
 						'title': "Documentation"
 					}, "Info")
 
